@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header text-white text-center" style="background-color: var(--accent-secondary);">
+                <h4 class="my-0"><i class="fas fa-lock me-2"></i>Login</h4>
+            </div>
+            <div class="card-body" style="background-color: var(--light-bg);">
+                <form method="POST" action="{{ url_for('login') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3"> 
+                        <label for="username" class="form-label">Username</label>
+                        {{ form.username(class="form-control", placeholder="Enter username") }}
+                        {% for error in form.username.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        {{ form.password(class="form-control", placeholder="Enter password") }}
+                        {% for error in form.password.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.remember_me(class="form-check-input") }}
+                        <label class="form-check-label" for="remember_me">Remember Me</label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn text-white" style="background-color: var(--accent-primary);">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted" style="background-color: var(--light-secondary);">
+                <small>HKEPH Engineering Database Management System</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

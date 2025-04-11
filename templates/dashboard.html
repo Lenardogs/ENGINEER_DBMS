@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="fas fa-chart-line me-2"></i>Dashboard</h2>
+        <p class="lead">Welcome to the HKEPH Engineering Database Management System</p>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card h-100" style="border-color: var(--accent-primary); background-color: rgba(238, 111, 87, 0.1);">
+            <div class="card-body text-center">
+                <h1 class="display-4" style="color: var(--accent-primary);">{{ soldering_tips_count }}</h1>
+                <h5 class="card-title">Soldering Tip Requisitions</h5>
+                <p class="card-text text-muted">Total requisitions recorded</p>
+            </div>
+        </div>
+    </div> 
+    <div class="col-md-3 mb-3">
+        <div class="card h-100" style="border-color: var(--accent-secondary); background-color: rgba(203, 55, 55, 0.1);">
+            <div class="card-body text-center">
+                <h1 class="display-4" style="color: var(--accent-secondary);">{{ machine_calibrations_count }}</h1>
+                <h5 class="card-title">Machine Calibrations</h5>
+                <p class="card-text text-muted">Scheduled calibrations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100" style="border-color: var(--accent-primary); background-color: rgba(238, 111, 87, 0.1);">
+            <div class="card-body text-center">
+                <h1 class="display-4" style="color: var(--accent-primary);">{{ overtime_logs_count }}</h1>
+                <h5 class="card-title">Overtime Logs</h5>
+                <p class="card-text text-muted">Employee overtime records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100" style="border-color: var(--accent-secondary); background-color: rgba(203, 55, 55, 0.1);">
+            <div class="card-body text-center">
+                <h1 class="display-4" style="color: var(--accent-secondary);">{{ equipment_downtimes_count }}</h1>
+                <h5 class="card-title">Equipment Downtimes</h5>
+                <p class="card-text text-muted">Total downtime incidents</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                <h5><i class="fas fa-tools me-2"></i>Soldering Tip Requisitions (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="solderingTipChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                <h5><i class="fas fa-user-clock me-2"></i>Overtime Hours (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="overtimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                <h5><i class="fas fa-power-off me-2"></i>Equipment Downtime (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="downtimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                <h5><i class="fas fa-cogs me-2"></i>Calibration Frequencies</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="calibrationChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Section -->
+<div class="row mb-3">
+    <div class="col">
+        <h3 style="color: var(--accent-secondary);"><i class="fas fa-history me-2"></i>Recent Activity</h3>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Soldering Tips -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                <h5><i class="fas fa-tools me-2"></i>Recent Soldering Tip Requisitions</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% if recent_soldering %}
+                        {% for tip in recent_soldering %}
+                            <li class="list-group-item">
+                                <strong style="color: var(--accent-primary);">{{ tip.machine_name }}</strong> - {{ tip.engineer_name }}
+                                <div class="small text-muted">{{ tip.date.strftime('%Y-%m-%d') }} ({{ tip.shift }} shift)</div>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-center text-muted">No recent records</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Overtime Logs -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                <h5><i class="fas fa-user-clock me-2"></i>Recent Overtime Logs</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% if recent_overtime %}
+                        {% for log in recent_overtime %}
+                            <li class="list-group-item">
+                                <strong style="color: var(--accent-secondary);">{{ log.employee_name }}</strong> - {{ log.hours }} hours
+                                <div class="small text-muted">{{ log.date.strftime('%Y-%m-%d') }}</div>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-center text-muted">No recent records</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Equipment Downtimes -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                <h5><i class="fas fa-power-off me-2"></i>Recent Equipment Downtimes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% if recent_downtimes %}
+                        {% for downtime in recent_downtimes %}
+                            <li class="list-group-item">
+                                <strong style="color: var(--accent-primary);">{{ downtime.equipment_name }}</strong> - {{ downtime.downtime_minutes }} minutes
+                                <div class="small text-muted">{{ downtime.date.strftime('%Y-%m-%d') }} ({{ downtime.shift }} shift)</div>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-center text-muted">No recent records</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Machine Calibrations -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                <h5><i class="fas fa-cogs me-2"></i>Recent Machine Calibrations</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% if recent_calibrations %}
+                        {% for cal in recent_calibrations %}
+                            <li class="list-group-item">
+                                <strong style="color: var(--accent-secondary);">{{ cal.machine_name }}</strong> - Every {{ cal.days_per_calibration }} days
+                                <div class="small text-muted">{{ cal.location_line }} ({{ cal.operator_name }})</div>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-center text-muted">No recent records</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Custom color palette
+    const primaryColor = '#EE6F57';
+    const secondaryColor = '#CB3737';
+    const lightBg = '#FAFAFA';
+    const lightSecondary = '#E3E3E3';
+    
+    // Soldering Tip Chart
+    fetch('/api/dashboard/soldering_tips_data')
+        .then(response => response.json())
+        .then(data => {
+            // Update colors
+            if (data.datasets && data.datasets.length > 0) {
+                data.datasets[0].borderColor = primaryColor;
+                data.datasets[0].backgroundColor = 'rgba(238, 111, 87, 0.2)';
+            }
+            
+            var ctx = document.getElementById('solderingTipChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    
+    // Overtime Chart
+    fetch('/api/dashboard/overtime_data')
+        .then(response => response.json())
+        .then(data => {
+            // Update colors
+            if (data.datasets && data.datasets.length > 0) {
+                data.datasets[0].borderColor = secondaryColor;
+                data.datasets[0].backgroundColor = 'rgba(203, 55, 55, 0.2)';
+            }
+            
+            var ctx = document.getElementById('overtimeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    
+    // Downtime Chart
+    fetch('/api/dashboard/downtime_data')
+        .then(response => response.json())
+        .then(data => {
+            // Update colors
+            if (data.datasets && data.datasets.length > 0) {
+                data.datasets[0].borderColor = primaryColor;
+                data.datasets[0].backgroundColor = 'rgba(238, 111, 87, 0.2)';
+            }
+            
+            var ctx = document.getElementById('downtimeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    
+    // Calibration Chart
+    fetch('/api/dashboard/calibration_data')
+        .then(response => response.json())
+        .then(data => {
+            // Update colors
+            if (data.datasets && data.datasets.length > 0) {
+                data.datasets[0].backgroundColor = secondaryColor;
+                data.datasets[0].borderColor = 'rgba(203, 55, 55, 0.8)';
+            }
+            
+            var ctx = document.getElementById('calibrationChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock %}

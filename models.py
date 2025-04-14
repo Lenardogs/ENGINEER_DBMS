@@ -59,3 +59,4 @@ class EquipmentDowntime(db.Model):
     
     def __repr__(self):
         return f'<EquipmentDowntime {self.equipment_name} {self.date}>'
+

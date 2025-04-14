@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SelectField, TextAreaField, IntegerField, FloatField, DateField, HiddenField
+from wtforms import StringField, PasswordField, BooleanField, SelectField, TextAreaField, IntegerField, FloatField, DateField, HiddenField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange
 
 class LoginForm(FlaskForm):
@@ -25,10 +25,17 @@ class SolderingTipForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
 
 class MachineCalibrationForm(FlaskForm):
-    machine_name = StringField('Machine Name', validators=[DataRequired(), Length(max=100)])
-    days_per_calibration = IntegerField('Days per Calibration', validators=[DataRequired(), NumberRange(min=1, max=365)])
-    location_line = StringField('Location/Line', validators=[DataRequired(), Length(max=100)])
-    operator_name = StringField('Operator Name', validators=[DataRequired(), Length(max=100)])
+    machine_name = StringField('Machine Name', validators=[DataRequired()])
+    days_per_calibration = IntegerField('Days per Calibration', validators=[DataRequired(), NumberRange(min=1)])
+    location_line = SelectField('Location/Line', choices=[
+        ('AOK', 'AOK'),
+        ('GRANDSTREAM', 'GRANDSTREAM'),
+        ('INTRACOM', 'INTRACOM'),
+        ('D-LINK', 'D-LINK'),
+        ('PC POWER', 'PC POWER')
+    ], validators=[DataRequired()])
+    operator_name = StringField('Operator Name', validators=[DataRequired()])
+    submit = SubmitField('Save')
 
 class OvertimeLogbookForm(FlaskForm):
     employee_name = StringField('Employee Name', validators=[DataRequired(), Length(max=100)])

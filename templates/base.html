@@ -123,6 +123,12 @@
                 border-radius: 0.25rem;
             }
         }
+
+        .bold-welcome {
+            font-weight: bold;
+            color: var(--accent-secondary);
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -135,7 +141,7 @@
     <nav class="sidebar collapse d-lg-block" id="sidebar">
         <div class="sidebar-brand">
             <a href="{{ url_for('dashboard') }}">
-                <i class="fas fa-industry me-2"></i>HKEPH Engineering DB
+                <i class="fas fa-industry me-2"></i>HKEPH Engineering DEPARTMENT
             </a>
         </div>
         {% if current_user.is_authenticated %}

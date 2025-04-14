@@ -46,7 +46,7 @@
                     
                     <div class="mb-3">
                         <label for="location_line" class="form-label">Location/Line</label>
-                        {{ form.location_line(class="form-control", placeholder="Enter location or line") }}
+                        {{ form.location_line(class="form-select") }}
                         {% for error in form.location_line.errors %}
                             <div class="text-danger">{{ error }}</div>
                         {% endfor %}
@@ -96,7 +96,9 @@
                         <i class="fas fa-sync-alt me-1"></i>Reset
                     </a> 
                 </div>
-                <div class="table-responsive">
+                
+                <!-- Add scrollable container -->
+                <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                     <table class="table table-hover">
                         <thead>
                             <tr>

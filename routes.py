@@ -17,6 +17,7 @@ def dashboard():
     # Count records for each module
     soldering_tips_count = SolderingTip.query.count()
     machine_calibrations_count = MachineCalibration.query.count()
+    
     overtime_logs_count = OvertimeLogbook.query.count()
     equipment_downtimes_count = EquipmentDowntime.query.count()
     
@@ -474,6 +475,12 @@ def delete_equipment_downtime(downtime_id):
     db.session.commit()
     flash('Equipment downtime record deleted successfully!', 'success')
     return redirect(url_for('equipment_downtime'))
+
+# Maintenance and Abnormality Report routes
+@app.route('/maintenance_report')
+@login_required
+def maintenance_report():
+    return render_template('maintenance_report.html')
 
 # Reports routes
 @app.route('/reports')

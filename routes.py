@@ -166,14 +166,27 @@ def delete_user(user_id):
 @login_required
 def soldering_tips():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = SolderingTip.query
+    
     if search_query:
-        tips = SolderingTip.query.filter(
+        query = query.filter(
             SolderingTip.machine_name.ilike(f'%{search_query}%')
-        ).order_by(SolderingTip.date.desc()).all()
-    else:
-        tips = SolderingTip.query.order_by(SolderingTip.date.desc()).all()
+        )
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(SolderingTip.date.between(start_date, end_date))
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+    
+    tips = query.order_by(SolderingTip.date.desc()).all()
     form = SolderingTipForm()
-    return render_template('soldering_tip.html', tips=tips, form=form, search_query=search_query)
+    return render_template('soldering_tip.html', tips=tips, form=form, search_query=search_query, start_date=start_date, end_date=end_date)
 
 @app.route('/soldering-tips/add', methods=['POST'])
 @login_required
@@ -299,14 +312,32 @@ def delete_machine_calibration(calibration_id):
 @login_required
 def overtime_logbook():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = OvertimeLogbook.query
+    
     if search_query:
-        logs = OvertimeLogbook.query.filter(
+        query = query.filter(
             OvertimeLogbook.employee_name.ilike(f'%{search_query}%')
-        ).order_by(OvertimeLogbook.date.desc()).all()
-    else:
-        logs = OvertimeLogbook.query.order_by(OvertimeLogbook.date.desc()).all()
+        )
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(OvertimeLogbook.date.between(start_date, end_date))
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+    
+    logs = query.order_by(OvertimeLogbook.date.desc()).all()
     form = OvertimeLogbookForm()
-    return render_template('overtime_logbook.html', logs=logs, form=form, search_query=search_query)
+    return render_template('overtime_logbook.html', 
+                           logs=logs, 
+                           form=form, 
+                           search_query=search_query,
+                           start_date=start_date,
+                           end_date=end_date)
 
 @app.route('/overtime-logbook/add', methods=['POST'])
 @login_required
@@ -362,14 +393,27 @@ def delete_overtime_log(log_id):
 @login_required
 def equipment_downtime():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = EquipmentDowntime.query
+    
     if search_query:
-        downtimes = EquipmentDowntime.query.filter(
+        query = query.filter(
             EquipmentDowntime.equipment_name.ilike(f'%{search_query}%')
-        ).order_by(EquipmentDowntime.date.desc()).all()
-    else:
-        downtimes = EquipmentDowntime.query.order_by(EquipmentDowntime.date.desc()).all()
+        )
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(EquipmentDowntime.date.between(start_date, end_date))
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+    
+    downtimes = query.order_by(EquipmentDowntime.date.desc()).all()
     form = EquipmentDowntimeForm()
-    return render_template('equipment_downtime.html', downtimes=downtimes, form=form, search_query=search_query)
+    return render_template('equipment_downtime.html', downtimes=downtimes, form=form, search_query=search_query, start_date=start_date, end_date=end_date)
 
 @app.route('/equipment-downtime/add', methods=['POST'])
 @login_required

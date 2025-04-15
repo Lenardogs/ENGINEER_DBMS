@@ -11,6 +11,12 @@
 /* Improve spacing and readability */
 body {
     padding-bottom: 20px;
+    background-image: url('/static/images/MachineBG.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    min-height: 100vh;
+    
 }
 
 /* Add some hover effects to the navbar */
@@ -78,6 +84,122 @@ body {
 
 .card.bg-opacity-10:hover {
     transform: translateY(-5px);
+}
+
+/* Custom form styles */
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+/* Table row hover effect */
+.table-hover tbody tr:hover {
+    background-color: rgba(238, 111, 87, 0.05);
+}
+
+/* Custom button styles */
+.btn-custom-primary {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.btn-custom-primary:hover,
+.btn-custom-primary:focus,
+.btn-custom-primary:active {
+    background-color: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    color: white;
+}
+
+.btn-custom-secondary {
+    background-color: var(--light-secondary);
+    border-color: var(--light-secondary);
+    color: #212529;
+}
+
+.btn-custom-secondary:hover,
+.btn-custom-secondary:focus,
+.btn-custom-secondary:active {
+    background-color: #d1d1d1;
+    border-color: #d1d1d1;
+    color: #212529;
+}
+
+/* Override Bootstrap button styles */
+.btn-primary {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--accent-secondary) !important;
+    border-color: var(--accent-secondary) !important;
+}
+
+.btn-warning {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active {
+    background-color: var(--accent-secondary) !important;
+    border-color: var(--accent-secondary) !important;
+    color: white !important;
+}
+
+.btn-danger {
+    background-color: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+}
+
+/* Badge overrides */
+.badge.bg-primary {
+    background-color: var(--accent-primary) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--accent-secondary) !important;
+}
+
+/* Badge custom colors */
+.badge-custom-primary {
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+.badge-custom-secondary {
+    background-color: var(--accent-secondary);
+    color: white;
+}
+
+/* Modal animations */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Ensure consistent button spacing */
+.btn-group > .btn {
+    margin-right: 0;
+}
+
+/* Add some subtle transitions */
+.alert {
+    transition: opacity 0.5s ease;
+}
+
+/* Improve the text readability in dark mode */
+[data-bs-theme=dark] .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* Custom form styles */

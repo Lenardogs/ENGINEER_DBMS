@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard-header mb-4">
-    <div class="row align-items-center">
-        <div class="col">
-            <h1 class="display-4 mb-2" style="color: var(--accent-secondary);">
-                <i class="fas fa-chart-line me-2" style="color: var(--accent-primary);"></i>
+<div class="content-area">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="mb-0" style="color: white;">
+                <i class="fas fa-chart-line me-2" style="color: white;"></i>
                 Dashboard
             </h1>
             <p class="lead text-muted mb-0 bold-welcome">
@@ -13,211 +13,378 @@
             </p>
         </div>
     </div>
-</div>
 
-<style>
-    .dashboard-header {
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-        border-bottom: 2px solid var(--light-secondary);
-    }
+    <style>
+        :root {
+            --accent-primary: #EE6F57;
+            --accent-secondary: #CB3737;
+            --light-bg: #f8f9fa;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+            --transition-duration: 0.3s;
+            --background-gradient: linear-gradient(135deg, rgba(238, 111, 87, 0.05), rgba(203, 55, 55, 0.03));
+            --background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 0 L100 100 L0 100 Z" fill="#f8f9fa" fill-opacity="0.9"/></svg>');
+            --header-image: url('https://images.unsplash.com/photo-1593642634315-48f5414c3ad9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');
+        }
 
-    .dashboard-header h1 {
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
+        .dashboard-header {
+            padding: 1.5rem 1rem;
+            margin-bottom: 2rem;
+            background-image: 
+                linear-gradient(rgba(238, 111, 87, 0.9), rgba(238, 111, 87, 0.9)),
+                url('https://images.unsplash.com/photo-1593642634315-48f5414c3ad9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white;
+            border-radius: 0.5rem;
+            position: relative;
+            z-index: 1;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            width: 100%;
+        }
 
-    .dashboard-header .lead {
-        font-size: 1.25rem;
-        opacity: 0.8;
-    }
-</style>
+        .dashboard-header .header-content {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-<!-- Stat Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card h-100" style="border-color: var(--accent-primary); background-color: rgba(238, 111, 87, 0.1);">
-            <div class="card-body text-center">
-                <h1 class="display-4" style="color: var(--accent-primary);">{{ soldering_tips_count }}</h1>
-                <h5 class="card-title">Soldering Tip Requisitions</h5>
-                <p class="card-text text-muted">Total requisitions recorded</p>
+        .dashboard-header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .dashboard-header .lead {
+            font-size: 1.2rem;
+            opacity: 1;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            height: 100%;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-duration) ease;
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .stat-card h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--accent-primary);
+        }
+
+        .stat-card h5 {
+            color: var(--accent-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Content Area */
+        .content-area {
+            transition: all var(--transition-duration) ease;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            background: var(--background-image);
+            min-height: 100vh;
+            background-size: 200px 200px;
+            background-position: center;
+            background-repeat: repeat;
+        }
+
+        .sidebar.collapsed ~ .content-area {
+            margin-left: var(--sidebar-collapsed-width) !important;
+            padding-left: 1rem;
+        }
+
+        .sidebar ~ .content-area {
+            margin-left: var(--sidebar-width) !important;
+            padding-left: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 1rem;
+                margin-left: 0 !important;
+            }
+
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+
+            .stat-card h1 {
+                font-size: 2rem;
+            }
+
+            .stat-card .card-body {
+                padding: 1.25rem;
+            }
+
+            .stat-card h5 {
+                font-size: 1rem;
+            }
+
+            .stat-card p {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Charts */
+        .chart-container {
+            height: 100%;
+            min-height: 300px;
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container canvas {
+            height: 100%;
+        }
+
+        /* Card Groups */
+        .card-group {
+            margin-bottom: 2rem;
+        }
+
+        .card-group .card {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-group .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Recent Activity */
+        .recent-activity {
+            margin-top: 2rem;
+        }
+
+        .recent-activity h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .recent-activity .card {
+            margin-bottom: 1rem;
+        }
+
+        .recent-activity .card-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+
+        .recent-activity .list-group-item {
+            padding: 1rem 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .recent-activity .list-group-item {
+                padding: 0.75rem 1rem;
+            }
+        }
+    </style>
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="border-color: var(--accent-primary); background-color: rgba(238, 111, 87, 0.1);">
+                <div class="card-body text-center">
+                    <h1 class="display-4" style="color: var(--accent-primary);">{{ soldering_tips_count }}</h1>
+                    <h5 class="card-title">Soldering Tip Requisitions</h5>
+                    <p class="card-text text-muted">Total requisitions recorded</p>
+                </div>
+            </div>
+        </div> 
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="border-color: var(--accent-secondary); background-color: rgba(203, 55, 55, 0.1);">
+                <div class="card-body text-center">
+                    <h1 class="display-4" style="color: var(--accent-secondary);">{{ machine_calibrations_count }}</h1>
+                    <h5 class="card-title">Machine Calibrations</h5>
+                    <p class="card-text text-muted">Scheduled calibrations</p>
+                </div>
             </div>
         </div>
-    </div> 
-    <div class="col-md-3 mb-3">
-        <div class="card h-100" style="border-color: var(--accent-secondary); background-color: rgba(203, 55, 55, 0.1);">
-            <div class="card-body text-center">
-                <h1 class="display-4" style="color: var(--accent-secondary);">{{ machine_calibrations_count }}</h1>
-                <h5 class="card-title">Machine Calibrations</h5>
-                <p class="card-text text-muted">Scheduled calibrations</p>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="border-color: var(--accent-primary); background-color: rgba(238, 111, 87, 0.1);">
+                <div class="card-body text-center">
+                    <h1 class="display-4" style="color: var(--accent-primary);">{{ overtime_logs_count }}</h1>
+                    <h5 class="card-title">Overtime Logs</h5>
+                    <p class="card-text text-muted">Employee overtime records</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="border-color: var(--accent-secondary); background-color: rgba(203, 55, 55, 0.1);">
+                <div class="card-body text-center">
+                    <h1 class="display-4" style="color: var(--accent-secondary);">{{ equipment_downtimes_count }}</h1>
+                    <h5 class="card-title">Equipment Downtimes</h5>
+                    <p class="card-text text-muted">Total downtime incidents</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
-        <div class="card h-100" style="border-color: var(--accent-primary); background-color: rgba(238, 111, 87, 0.1);">
-            <div class="card-body text-center">
-                <h1 class="display-4" style="color: var(--accent-primary);">{{ overtime_logs_count }}</h1>
-                <h5 class="card-title">Overtime Logs</h5>
-                <p class="card-text text-muted">Employee overtime records</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card h-100" style="border-color: var(--accent-secondary); background-color: rgba(203, 55, 55, 0.1);">
-            <div class="card-body text-center">
-                <h1 class="display-4" style="color: var(--accent-secondary);">{{ equipment_downtimes_count }}</h1>
-                <h5 class="card-title">Equipment Downtimes</h5>
-                <p class="card-text text-muted">Total downtime incidents</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Charts Section -->
-<div class="row mb-4">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
-                <h5><i class="fas fa-tools me-2"></i>Soldering Tip Requisitions (Last 30 Days)</h5>
-            </div>
-            <div class="card-body">
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
                 <canvas id="solderingTipChart"></canvas>
             </div>
         </div>
-    </div>
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
-                <h5><i class="fas fa-user-clock me-2"></i>Overtime Hours (Last 30 Days)</h5>
-            </div>
-            <div class="card-body">
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
                 <canvas id="overtimeChart"></canvas>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row mb-4">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
-                <h5><i class="fas fa-power-off me-2"></i>Equipment Downtime (Last 30 Days)</h5>
-            </div>
-            <div class="card-body">
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
                 <canvas id="downtimeChart"></canvas>
             </div>
         </div>
-    </div>
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
-                <h5><i class="fas fa-cogs me-2"></i>Calibration Frequencies</h5>
-            </div>
-            <div class="card-body">
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
                 <canvas id="calibrationChart"></canvas>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Recent Activity Section -->
-<div class="row mb-3">
-    <div class="col">
-        <h3 style="color: var(--accent-secondary);"><i class="fas fa-history me-2"></i>Recent Activity</h3>
+    <!-- Recent Activity Section -->
+    <div class="row mb-3">
+        <div class="col">
+            <h3 style="color: var(--accent-secondary);"><i class="fas fa-history me-2"></i>Recent Activity</h3>
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <!-- Recent Soldering Tips -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
-                <h5><i class="fas fa-tools me-2"></i>Recent Soldering Tip Requisitions</h5>
+    <div class="row">
+        <!-- Recent Soldering Tips -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                    <h5><i class="fas fa-tools me-2"></i>Recent Soldering Tip Requisitions</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_soldering %}
+                            {% for tip in recent_soldering %}
+                                <li class="list-group-item">
+                                    <strong style="color: var(--accent-primary);">{{ tip.machine_name }}</strong> - {{ tip.engineer_name }}
+                                    <div class="small text-muted">{{ tip.date.strftime('%Y-%m-%d') }} ({{ tip.shift }} shift)</div>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center text-muted">No recent records</li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% if recent_soldering %}
-                        {% for tip in recent_soldering %}
-                            <li class="list-group-item">
-                                <strong style="color: var(--accent-primary);">{{ tip.machine_name }}</strong> - {{ tip.engineer_name }}
-                                <div class="small text-muted">{{ tip.date.strftime('%Y-%m-%d') }} ({{ tip.shift }} shift)</div>
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="list-group-item text-center text-muted">No recent records</li>
-                    {% endif %}
-                </ul>
+        </div>
+        
+        <!-- Recent Overtime Logs -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                    <h5><i class="fas fa-user-clock me-2"></i>Recent Overtime Logs</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_overtime %}
+                            {% for log in recent_overtime %}
+                                <li class="list-group-item">
+                                    <strong style="color: var(--accent-secondary);">{{ log.employee_name }}</strong> - {{ log.hours }} hours
+                                    <div class="small text-muted">{{ log.date.strftime('%Y-%m-%d') }}</div>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center text-muted">No recent records</li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Recent Overtime Logs -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
-                <h5><i class="fas fa-user-clock me-2"></i>Recent Overtime Logs</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% if recent_overtime %}
-                        {% for log in recent_overtime %}
-                            <li class="list-group-item">
-                                <strong style="color: var(--accent-secondary);">{{ log.employee_name }}</strong> - {{ log.hours }} hours
-                                <div class="small text-muted">{{ log.date.strftime('%Y-%m-%d') }}</div>
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="list-group-item text-center text-muted">No recent records</li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row">
-    <!-- Recent Equipment Downtimes -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-primary); color: white;">
-                <h5><i class="fas fa-power-off me-2"></i>Recent Equipment Downtimes</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% if recent_downtimes %}
-                        {% for downtime in recent_downtimes %}
-                            <li class="list-group-item">
-                                <strong style="color: var(--accent-primary);">{{ downtime.equipment_name }}</strong> - {{ downtime.downtime_minutes }} minutes
-                                <div class="small text-muted">{{ downtime.date.strftime('%Y-%m-%d') }} ({{ downtime.shift }} shift)</div>
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="list-group-item text-center text-muted">No recent records</li>
-                    {% endif %}
-                </ul>
+    <div class="row">
+        <!-- Recent Equipment Downtimes -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                    <h5><i class="fas fa-power-off me-2"></i>Recent Equipment Downtimes</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_downtimes %}
+                            {% for downtime in recent_downtimes %}
+                                <li class="list-group-item">
+                                    <strong style="color: var(--accent-primary);">{{ downtime.equipment_name }}</strong> - {{ downtime.downtime_minutes }} minutes
+                                    <div class="small text-muted">{{ downtime.date.strftime('%Y-%m-%d') }} ({{ downtime.shift }} shift)</div>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center text-muted">No recent records</li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Recent Machine Calibrations -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
-                <h5><i class="fas fa-cogs me-2"></i>Recent Machine Calibrations</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% if recent_calibrations %}
-                        {% for cal in recent_calibrations %}
-                            <li class="list-group-item">
-                                <strong style="color: var(--accent-secondary);">{{ cal.machine_name }}</strong> - Every {{ cal.days_per_calibration }} days
-                                <div class="small text-muted">{{ cal.location_line }} ({{ cal.operator_name }})</div>
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="list-group-item text-center text-muted">No recent records</li>
-                    {% endif %}
-                </ul>
+        
+        <!-- Recent Machine Calibrations -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                    <h5><i class="fas fa-cogs me-2"></i>Recent Machine Calibrations</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_calibrations %}
+                            {% for cal in recent_calibrations %}
+                                <li class="list-group-item">
+                                    <strong style="color: var(--accent-secondary);">{{ cal.machine_name }}</strong> - Every {{ cal.days_per_calibration }} days
+                                    <div class="small text-muted">{{ cal.location_line }} ({{ cal.operator_name }})</div>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center text-muted">No recent records</li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -343,5 +510,30 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 });
+
+// Handle sidebar toggle
+const sidebar = document.getElementById('sidebar');
+const contentArea = document.querySelector('.content-area');
+
+function adjustContentArea() {
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    contentArea.style.transition = 'all var(--transition-duration) ease';
+    contentArea.style.marginLeft = isCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)';
+    contentArea.style.paddingLeft = isCollapsed ? '1rem' : '1rem';
+    
+    // Update chart container sizes
+    const chartContainers = document.querySelectorAll('.chart-container');
+    chartContainers.forEach(container => {
+        container.style.width = '100%';
+        container.style.height = 'auto';
+    });
+}
+
+// Adjust content area when sidebar toggles
+sidebar.addEventListener('transitionend', adjustContentArea);
+window.addEventListener('resize', adjustContentArea);
+
+// Initial adjustment
+adjustContentArea();
 </script>
 {% endblock %}

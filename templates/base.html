@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="light" style="height: 100%;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,48 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        /* Main Flex Center Container */
+        .main-flex-center {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: stretch;
+            min-height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* Centered and Fullscreen Content */
+        .centered-content {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: stretch;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 1rem;
+            background: none;
+            box-shadow: none;
+            border-radius: 0;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        @media (max-width: 991.98px) {
+            .centered-content {
+                padding: 1rem;
+            }
+        }
+        @media (max-width: 575.98px) {
+            .centered-content {
+                padding: 0.5rem;
+            }
+        }
+
         :root {
             --accent-primary: #EE6F57;
             --accent-primary-dark: #CB3737;
@@ -20,17 +62,20 @@
             --accent-secondary-dark: #A32929;
             --light-secondary: #E3E3E3;
             --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
         }
 
         /* Responsive Sidebar */
         .sidebar {
             width: var(--sidebar-width);
             min-height: 100vh;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             overflow: hidden;
             z-index: 1;
-            position: relative;
+            position: fixed;
+            left: 0;
+            top: 0;
         }
 
         .sidebar::before {
@@ -68,7 +113,7 @@
         }
 
         .sidebar.collapsed {
-            width: 70px;
+            width: var(--sidebar-collapsed-width);
         }
 
         .sidebar.collapsed .nav-link {
@@ -83,14 +128,39 @@
             margin-right: 0;
         }
 
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar.collapsed {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .content-area {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar-toggle {
+                left: 1rem;
+            }
+        }
+
         /* Responsive Content Area */
         .content-area {
             margin-left: var(--sidebar-width);
             transition: all 0.3s ease;
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        .sidebar.collapsed + .content-area {
-            margin-left: 70px;
+        @media (max-width: 768px) {
+            .content-area {
+                margin-left: var(--sidebar-collapsed-width);
+                width: calc(100% - var(--sidebar-collapsed-width));
+                padding: 10px;
+            }
         }
 
         /* Responsive Header */
@@ -268,7 +338,7 @@
             left: 0;
             bottom: 0;
             z-index: 1030;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             background-color: var(--accent-secondary) !important;
             overflow-y: auto;
@@ -427,27 +497,130 @@
         .sidebar-toggle {
             position: fixed;
             top: 1rem;
-            left: 1rem;
-            z-index: 1031;
-            background-color: var(--accent-secondary);
-            color: white;
+            left: 1.5rem;
+            z-index: 1050;
+            width: 40px;
+            height: 40px;
             border: none;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            backdrop-filter: blur(5px);
+            opacity: 1;
         }
 
         .sidebar-toggle:hover {
-            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-toggle:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-toggle.collapsed {
+            left: 1.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(0);
         }
 
         .sidebar-toggle i {
-            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+            color: var(--accent-secondary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
         }
 
         .sidebar-toggle.collapsed i {
             transform: rotate(180deg);
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar-toggle {
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+                width: 40px;
+                height: 40px;
+                z-index: 1000;
+                backdrop-filter: blur(3px);
+            }
+
+            .sidebar-toggle.collapsed {
+                left: 1rem;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle i {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar-toggle {
+                width: 35px;
+                height: 35px;
+                top: 0.75rem;
+                left: 0.75rem;
+                backdrop-filter: blur(2px);
+            }
+
+            .sidebar-toggle.collapsed {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .sidebar-toggle i {
+                font-size: 1rem;
+            }
+
+            .sidebar-toggle:active {
+                transform: scale(0.9);
+            }
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                position: fixed;
+                left: -250px;
+                z-index: 1000;
+            }
+
+            .sidebar.collapsed {
+                left: 0;
+            }
+
+            .content-area {
+                margin-left: 0;
+                width: 100%;
+                padding: 10px;
+            }
+
+            .sidebar.collapsed + .content-area {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+        }
+
+        /* Content Area */
+        .content-area {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            padding: 20px;
         }
 
         /* Footer Styles */
@@ -462,59 +635,36 @@
             transition: left 0.3s ease;
         }
 
+        .sidebar-hidden footer {
+            left: 0;
+        }
+
+        .sidebar ~ footer {
+            left: 250px;
+        }
+
+        .sidebar.collapsed ~ footer {
+            left: 60px;
+        }
+
         /* Responsive Design */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                box-shadow: none;
-            }
-
-            .sidebar.collapsed {
-                width: 100%;
-            }
-
-            .sidebar ~ main,
-            .sidebar.collapsed ~ main {
-                margin-left: 0;
-                padding-left: 1rem;
-            }
-
-            .sidebar ~ footer,
-            .sidebar.collapsed ~ footer {
-                left: 0;
-                width: 100%;
-            }
-
-            .sidebar-nav {
-                margin-top: 1rem;
-            }
-
-            .sidebar-brand {
-                padding: 1rem;
-                text-align: center;
-            }
-
-            .sidebar-brand a {
-                justify-content: center;
-            }
-
-            .sidebar-toggle {
-                display: block !important;
-                left: 0.5rem;
-            }
+        .sidebar-hidden .sidebar-toggle,
+        .sidebar-hidden .sidebar {
+            display: none !important;
+        }
+        .sidebar-hidden .sidebar ~ .content-area {
+            margin-left: 0;
         }
     </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}" style="height: 100%; margin: 0;">
     <!-- Sidebar Toggle Button -->
     <button class="sidebar-toggle" type="button" id="sidebarToggle">
         <i class="fas fa-bars"></i>
     </button>
 
     <!-- Sidebar -->
-    <nav class="sidebar collapse d-lg-block" id="sidebar">
+    <nav class="sidebar" id="sidebar">
         <svg class="sidebar-wave" viewBox="0 0 100 100" preserveAspectRatio="none">
             <path d="M0 0 L0 100 Q25 80 50 70 Q75 80 100 100 L100 0 Q75 20 50 30 Q25 20 0 0 Z" fill="var(--accent-primary)"/>
             <path d="M0 0 L0 100 Q25 75 50 65 Q75 75 100 100 L100 0 Q75 25 50 45 Q25 25 0 0 Z" fill="var(--accent-secondary)"/>
@@ -603,19 +753,30 @@
         </div> 
 
         <!-- Main Content -->
-        <main class="container main-content mt-4 mb-5">
-            {% block content %}{% endblock %}
-        </main>
+        <div class="main-flex-center">
+            {% block content %}
+            {% endblock %}
+        </div>
 
         <!-- Footer -->
-        <footer style="background-color: var(--light-secondary); color: var(--accent-secondary); position: fixed; bottom: 0; width: 100%; padding: 1rem 0; z-index: 1020;">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-md-6 text-center text-md-start">
-                        <strong>HKEPH Database Management System</strong>
-                    </div>
-                    <div class="col-md-6 text-center text-md-end">
-                        <p class="mb-0">&copy; 2023 All Rights Reserved</p>
+        <footer class="bg-dark text-white position-fixed bottom-0 w-100 py-2 z-1020" style="
+            background-color: rgba(0,0,0,0.8);
+            left: 0;
+            right: 0;
+            width: 100%;
+            text-align: center;
+        ">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <p class="mb-0" style="
+                            color: rgba(255,255,255,0.9);
+                            font-size: 0.9rem;
+                            max-width: 100%;
+                            word-wrap: break-word;
+                            margin: 0 auto;
+                            padding: 0 1rem;
+                        ">HKEPH Engineering Database Management System &copy; 2024</p>
                     </div>
                 </div>
             </div>

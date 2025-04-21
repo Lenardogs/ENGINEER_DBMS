@@ -2,12 +2,39 @@
 
 {% block content %}
 <div class="content-area">
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="fas fa-tools me-2"></i>Soldering Tip Requisition</h2>
-            <p class="lead">Manage soldering tip requisitions</p>
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="mb-0" style="color: white;">
+                <i class="fas fa-tools me-2" style="color: white;"></i>
+                Soldering Tip Requisition
+            </h1>
+            <p class="lead text-muted mb-0 bold-welcome">
+                Manage soldering tip requisitions for your engineering needs
+            </p>
         </div>
     </div>
+
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 2rem 0;
+            border-radius: 0 0 1rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .bold-welcome {
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+
+    
 
     <div class="row mb-4">
         <div class="col-md-4">

@@ -2,168 +2,195 @@
 
 {% block content %}
 <div class="content-area">
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="fas fa-cogs me-2"></i>Machine Calibration Scheduler</h2>
-        <p class="lead">Manage machine calibration schedules</p>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    {% if edit_calibration %}
-                    <i class="fas fa-edit me-1"></i>Edit Calibration Schedule
-                    {% else %}
-                    <i class="fas fa-plus-circle me-1"></i>New Calibration Schedule
-                    {% endif %}
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if edit_calibration %}
-                <form method="POST" action="{{ url_for('edit_machine_calibration', calibration_id=edit_calibration.id) }}">
-                {% else %}
-                <form method="POST" action="{{ url_for('add_machine_calibration') }}">
-                {% endif %}
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        <label for="machine_name" class="form-label">Machine Name</label>
-                        {{ form.machine_name(class="form-control", placeholder="Enter machine name") }}
-                        {% for error in form.machine_name.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="days_per_calibration" class="form-label">Days per Calibration</label>
-                        {{ form.days_per_calibration(class="form-control", placeholder="Enter days between calibrations") }}
-                        {% for error in form.days_per_calibration.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="location_line" class="form-label">Location/Line</label>
-                        {{ form.location_line(class="form-select") }}
-                        {% for error in form.location_line.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="operator_name" class="form-label">Operator Name</label>
-                        {{ form.operator_name(class="form-control", placeholder="Enter operator name") }}
-                        {% for error in form.operator_name.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        {% if edit_calibration %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i>Update Schedule
-                        </button>
-                        <a href="{{ url_for('machine_calibrations') }}" class="btn btn-secondary">
-                            <i class="fas fa-times me-1"></i>Cancel
-                        </a>
-                        {% else %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-1"></i>Add Schedule
-                        </button>
-                        {% endif %}
-                    </div>
-                </form>
-            </div>
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="mb-0" style="color: white;">
+                <i class="fas fa-cogs me-2" style="color: white;"></i>
+                Machine Calibration
+            </h1>
+            <p class="lead text-muted mb-0 bold-welcome">
+                Manage and track machine calibration records
+            </p>
         </div>
     </div>
-    
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="fas fa-list me-1"></i>Calibration Schedule List</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <form class="d-flex" method="GET" action="{{ url_for('machine_calibrations') }}">
-                        <input type="text" class="form-control me-2" name="search" placeholder="Search by machine name..." value="{{ search_query if search_query else '' }}">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search me-1"></i>Search
-                        </button>
-                    </form>
-                    <a href="{{ url_for('machine_calibrations') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-sync-alt me-1"></i>Reset
-                    </a> 
+
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 2rem 0;
+            border-radius: 0 0 1rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .bold-welcome {
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+
+   
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {% if edit_calibration %}
+                        <i class="fas fa-edit me-1"></i>Edit Calibration Schedule
+                        {% else %}
+                        <i class="fas fa-plus-circle me-1"></i>New Calibration Schedule
+                        {% endif %}
+                    </h5>
                 </div>
-                
-                <!-- Add scrollable container -->
-                <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Machine Name</th>
-                                <th>Calibration Frequency</th>
-                                <th>Location/Line</th>
-                                <th>Operator</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for calibration in calibrations %}
-                            <tr>
-                                <td>{{ calibration.machine_name }}</td>
-                                <td>Every {{ calibration.days_per_calibration }} days</td>
-                                <td>{{ calibration.location_line }}</td>
-                                <td>{{ calibration.operator_name }}</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ url_for('edit_machine_calibration', calibration_id=calibration.id) }}" class="btn btn-warning">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCalibrationModal-{{ calibration.id }}">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Delete Confirmation Modal -->
-                            <div class="modal fade" id="deleteCalibrationModal-{{ calibration.id }}" tabindex="-1" aria-labelledby="deleteCalibrationModalLabel-{{ calibration.id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title" id="deleteCalibrationModalLabel-{{ calibration.id }}">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>Confirm Deletion
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="card-body">
+                    {% if edit_calibration %}
+                    <form method="POST" action="{{ url_for('edit_machine_calibration', calibration_id=edit_calibration.id) }}">
+                    {% else %}
+                    <form method="POST" action="{{ url_for('add_machine_calibration') }}">
+                    {% endif %}
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="machine_name" class="form-label">Machine Name</label>
+                            {{ form.machine_name(class="form-control", placeholder="Enter machine name") }}
+                            {% for error in form.machine_name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="days_per_calibration" class="form-label">Days per Calibration</label>
+                            {{ form.days_per_calibration(class="form-control", placeholder="Enter days between calibrations") }}
+                            {% for error in form.days_per_calibration.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location_line" class="form-label">Location/Line</label>
+                            {{ form.location_line(class="form-select") }}
+                            {% for error in form.location_line.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="operator_name" class="form-label">Operator Name</label>
+                            {{ form.operator_name(class="form-control", placeholder="Enter operator name") }}
+                            {% for error in form.operator_name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {% if edit_calibration %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Schedule
+                            </button>
+                            <a href="{{ url_for('machine_calibrations') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            {% else %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>Add Schedule
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-1"></i>Calibration Schedule List</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <form class="d-flex" method="GET" action="{{ url_for('machine_calibrations') }}">
+                            <input type="text" class="form-control me-2" name="search" placeholder="Search by machine name..." value="{{ search_query if search_query else '' }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                        </form>
+                        <a href="{{ url_for('machine_calibrations') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync-alt me-1"></i>Reset
+                        </a> 
+                    </div>
+                    
+                    <!-- Add scrollable container -->
+                    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Machine Name</th>
+                                    <th>Calibration Frequency</th>
+                                    <th>Location/Line</th>
+                                    <th>Operator</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for calibration in calibrations %}
+                                <tr>
+                                    <td>{{ calibration.machine_name }}</td>
+                                    <td>Every {{ calibration.days_per_calibration }} days</td>
+                                    <td>{{ calibration.location_line }}</td>
+                                    <td>{{ calibration.operator_name }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('edit_machine_calibration', calibration_id=calibration.id) }}" class="btn btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCalibrationModal-{{ calibration.id }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
                                         </div>
-                                        <div class="modal-body">
-                                            Are you sure you want to delete the calibration schedule for <strong>{{ calibration.machine_name }}</strong>? This action cannot be undone.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ url_for('delete_machine_calibration', calibration_id=calibration.id) }}" method="POST">
-                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                            </form>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteCalibrationModal-{{ calibration.id }}" tabindex="-1" aria-labelledby="deleteCalibrationModalLabel-{{ calibration.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title" id="deleteCalibrationModalLabel-{{ calibration.id }}">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Confirm Deletion
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the calibration schedule for <strong>{{ calibration.machine_name }}</strong>? This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('delete_machine_calibration', calibration_id=calibration.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            {% endfor %}
-                            
-                            {% if not calibrations %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">No calibration schedules found</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                                {% endfor %}
+                                
+                                {% if not calibrations %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No calibration schedules found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 {% endblock %}

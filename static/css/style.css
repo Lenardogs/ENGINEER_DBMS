@@ -334,3 +334,23 @@ body {
 [data-bs-theme=dark] .text-muted {
     color: rgba(255, 255, 255, 0.6) !important;
 }
+
+/* Hide navbar text when sidebar is collapsed */
+.navbar-brand {
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed .navbar-brand span {
+    display: none;
+}
+
+.sidebar.collapsed .navbar-brand i {
+    margin-right: 0;
+}
+
+/* Ensure navbar brand is properly positioned */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

@@ -202,6 +202,23 @@ body {
     color: rgba(255, 255, 255, 0.6) !important;
 }
 
+/* Main content padding to avoid navbar overlap */
+.content-area {
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+    .content-area {
+        margin-left: 0;
+    }
+}
+
+/* Ensure content doesn't overlap with fixed navbar */
+.content-area {
+    padding-top: 60px; /* Adjust this value based on your navbar height */
+}
+
 /* Custom form styles */
 .form-control:focus, .form-select:focus {
     box-shadow: 0 0 0 0.25rem var(--accent-primary);

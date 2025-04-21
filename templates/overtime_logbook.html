@@ -1,165 +1,167 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="fas fa-user-clock me-2"></i>Overtime Logbook</h2>
-        <p class="lead">Manage employee overtime records</p>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    {% if edit_log %}
-                    <i class="fas fa-edit me-1"></i>Edit Overtime Log
-                    {% else %}
-                    <i class="fas fa-plus-circle me-1"></i>New Overtime Log
-                    {% endif %}
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if edit_log %}
-                <form method="POST" action="{{ url_for('edit_overtime_log', log_id=edit_log.id) }}">
-                {% else %}
-                <form method="POST" action="{{ url_for('add_overtime_log') }}">
-                {% endif %}
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        <label for="employee_name" class="form-label">Employee Name</label>
-                        {{ form.employee_name(class="form-control", placeholder="Enter employee name") }}
-                        {% for error in form.employee_name.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="date" class="form-label">Date</label>
-                        {{ form.date(class="form-control", type="date") }}
-                        {% for error in form.date.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="hours" class="form-label">Hours</label>
-                        {{ form.hours(class="form-control", placeholder="Enter overtime hours") }}
-                        {% for error in form.hours.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        {% if edit_log %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i>Update Log
-                        </button>
-                        <a href="{{ url_for('overtime_logbook') }}" class="btn btn-secondary">
-                            <i class="fas fa-times me-1"></i>Cancel
-                        </a>
-                        {% else %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-1"></i>Add Log
-                        </button>
-                        {% endif %}
-                    </div>
-                </form>
-            </div>
+<div class="content-area">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-user-clock me-2"></i>Overtime Logbook</h2>
+            <p class="lead">Manage employee overtime records</p>
         </div>
     </div>
-    
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="fas fa-list me-1"></i>Overtime Log List</h5>
-            </div> 
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <form class="d-flex" method="GET" action="{{ url_for('overtime_logbook') }}">
-                            <input type="text" class="form-control me-2" name="search" placeholder="Search by employee name..." value="{{ search_query if search_query else '' }}">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-search me-1"></i>Search
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-md-6">
-                        <form class="d-flex" method="GET" action="{{ url_for('overtime_logbook') }}">
-                            <div class="input-group me-2">
-                                <input type="date" class="form-control" name="start_date" value="{{ start_date if start_date else '' }}">
-                                <span class="input-group-text">to</span>
-                                <input type="date" class="form-control" name="end_date" value="{{ end_date if end_date else '' }}">
-                            </div>
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-calendar me-1"></i>Filter by Date
-                            </button>
-                        </form>
-                    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {% if edit_log %}
+                        <i class="fas fa-edit me-1"></i>Edit Overtime Log
+                        {% else %}
+                        <i class="fas fa-plus-circle me-1"></i>New Overtime Log
+                        {% endif %}
+                    </h5>
                 </div>
-                
-                <!-- Add scrollable container -->
-                <div class="table-responsive" style="max-height: 600px;">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Employee Name</th>
-                                <th>Date</th>
-                                <th>Hours</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for log in logs %}
-                            <tr>
-                                <td>{{ log.employee_name }}</td>
-                                <td>{{ log.date.strftime('%Y-%m-%d') }}</td>
-                                <td>{{ log.hours }}</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ url_for('edit_overtime_log', log_id=log.id) }}" class="btn btn-warning">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteLogModal-{{ log.id }}">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Delete Confirmation Modal -->
-                            <div class="modal fade" id="deleteLogModal-{{ log.id }}" tabindex="-1" aria-labelledby="deleteLogModalLabel-{{ log.id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title" id="deleteLogModalLabel-{{ log.id }}">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>Confirm Deletion
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="card-body">
+                    {% if edit_log %}
+                    <form method="POST" action="{{ url_for('edit_overtime_log', log_id=edit_log.id) }}">
+                    {% else %}
+                    <form method="POST" action="{{ url_for('add_overtime_log') }}">
+                    {% endif %}
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="employee_name" class="form-label">Employee Name</label>
+                            {{ form.employee_name(class="form-control", placeholder="Enter employee name") }}
+                            {% for error in form.employee_name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            {{ form.date(class="form-control", type="date") }}
+                            {% for error in form.date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hours" class="form-label">Hours</label>
+                            {{ form.hours(class="form-control", placeholder="Enter overtime hours") }}
+                            {% for error in form.hours.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {% if edit_log %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Log
+                            </button>
+                            <a href="{{ url_for('overtime_logbook') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            {% else %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>Add Log
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-1"></i>Overtime Log List</h5>
+                </div> 
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET" action="{{ url_for('overtime_logbook') }}">
+                                <input type="text" class="form-control me-2" name="search" placeholder="Search by employee name..." value="{{ search_query if search_query else '' }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET" action="{{ url_for('overtime_logbook') }}">
+                                <div class="input-group me-2">
+                                    <input type="date" class="form-control" name="start_date" value="{{ start_date if start_date else '' }}">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" name="end_date" value="{{ end_date if end_date else '' }}">
+                                </div>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-calendar me-1"></i>Filter by Date
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Add scrollable container -->
+                    <div class="table-responsive" style="max-height: 600px;">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employee Name</th>
+                                    <th>Date</th>
+                                    <th>Hours</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.employee_name }}</td>
+                                    <td>{{ log.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ log.hours }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('edit_overtime_log', log_id=log.id) }}" class="btn btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteLogModal-{{ log.id }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
                                         </div>
-                                        <div class="modal-body">
-                                            Are you sure you want to delete the overtime log for <strong>{{ log.employee_name }}</strong> on <strong>{{ log.date.strftime('%Y-%m-%d') }}</strong>? This action cannot be undone.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ url_for('delete_overtime_log', log_id=log.id) }}" method="POST">
-                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                            </form>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteLogModal-{{ log.id }}" tabindex="-1" aria-labelledby="deleteLogModalLabel-{{ log.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title" id="deleteLogModalLabel-{{ log.id }}">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Confirm Deletion
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the overtime log for <strong>{{ log.employee_name }}</strong> on <strong>{{ log.date.strftime('%Y-%m-%d') }}</strong>? This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('delete_overtime_log', log_id=log.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            {% endfor %}
-                            
-                            {% if not logs %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted">No overtime logs found</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                                {% endfor %}
+                                
+                                {% if not logs %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No overtime logs found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

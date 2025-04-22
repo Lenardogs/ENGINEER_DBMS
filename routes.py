@@ -1,19 +1,33 @@
 import calendar
 from datetime import datetime, timedelta
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app, db
 from models import User, SolderingTip, MachineCalibration, OvertimeLogbook, EquipmentDowntime
 from forms import LoginForm, UserForm, SolderingTipForm, MachineCalibrationForm, OvertimeLogbookForm, EquipmentDowntimeForm, ReportForm
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+from io import BytesIO
+
+# Language settings route
+@app.route('/set_language/<lang>')
+def set_language(lang):
+    if lang in ['en', 'zh']:
+        session['language'] = lang
+    return redirect(request.referrer or url_for('dashboard'))
 
 # Home/Dashboard route
 @app.route('/')
 @login_required
 def dashboard():
+    # Get current language preference
+    language = session.get('language', 'en')
+    
     # Count records for each module
     soldering_tips_count = SolderingTip.query.count()
     machine_calibrations_count = MachineCalibration.query.count()
+    
     overtime_logs_count = OvertimeLogbook.query.count()
     equipment_downtimes_count = EquipmentDowntime.query.count()
     
@@ -24,6 +38,7 @@ def dashboard():
     recent_downtimes = EquipmentDowntime.query.order_by(EquipmentDowntime.created_at.desc()).limit(5).all()
     
     return render_template('dashboard.html', 
+                           language=language,
                            soldering_tips_count=soldering_tips_count,
                            machine_calibrations_count=machine_calibrations_count,
                            overtime_logs_count=overtime_logs_count,
@@ -166,14 +181,27 @@ def delete_user(user_id):
 @login_required
 def soldering_tips():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = SolderingTip.query
+    
     if search_query:
-        tips = SolderingTip.query.filter(
+        query = query.filter(
             SolderingTip.machine_name.ilike(f'%{search_query}%')
-        ).order_by(SolderingTip.date.desc()).all()
-    else:
-        tips = SolderingTip.query.order_by(SolderingTip.date.desc()).all()
+        )
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(SolderingTip.date.between(start_date, end_date))
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+    
+    tips = query.order_by(SolderingTip.date.desc()).all()
     form = SolderingTipForm()
-    return render_template('soldering_tip.html', tips=tips, form=form, search_query=search_query)
+    return render_template('soldering_tip.html', tips=tips, form=form, search_query=search_query, start_date=start_date, end_date=end_date)
 
 @app.route('/soldering-tips/add', methods=['POST'])
 @login_required
@@ -299,14 +327,32 @@ def delete_machine_calibration(calibration_id):
 @login_required
 def overtime_logbook():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = OvertimeLogbook.query
+    
     if search_query:
-        logs = OvertimeLogbook.query.filter(
+        query = query.filter(
             OvertimeLogbook.employee_name.ilike(f'%{search_query}%')
-        ).order_by(OvertimeLogbook.date.desc()).all()
-    else:
-        logs = OvertimeLogbook.query.order_by(OvertimeLogbook.date.desc()).all()
+        )
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(OvertimeLogbook.date.between(start_date, end_date))
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+    
+    logs = query.order_by(OvertimeLogbook.date.desc()).all()
     form = OvertimeLogbookForm()
-    return render_template('overtime_logbook.html', logs=logs, form=form, search_query=search_query)
+    return render_template('overtime_logbook.html', 
+                           logs=logs, 
+                           form=form, 
+                           search_query=search_query,
+                           start_date=start_date,
+                           end_date=end_date)
 
 @app.route('/overtime-logbook/add', methods=['POST'])
 @login_required
@@ -362,14 +408,27 @@ def delete_overtime_log(log_id):
 @login_required
 def equipment_downtime():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = EquipmentDowntime.query
+    
     if search_query:
-        downtimes = EquipmentDowntime.query.filter(
+        query = query.filter(
             EquipmentDowntime.equipment_name.ilike(f'%{search_query}%')
-        ).order_by(EquipmentDowntime.date.desc()).all()
-    else:
-        downtimes = EquipmentDowntime.query.order_by(EquipmentDowntime.date.desc()).all()
+        )
+    
+    if start_date and end_date:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(EquipmentDowntime.date.between(start_date, end_date))
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+    
+    downtimes = query.order_by(EquipmentDowntime.date.desc()).all()
     form = EquipmentDowntimeForm()
-    return render_template('equipment_downtime.html', downtimes=downtimes, form=form, search_query=search_query)
+    return render_template('equipment_downtime.html', downtimes=downtimes, form=form, search_query=search_query, start_date=start_date, end_date=end_date)
 
 @app.route('/equipment-downtime/add', methods=['POST'])
 @login_required
@@ -428,6 +487,12 @@ def delete_equipment_downtime(downtime_id):
     flash('Equipment downtime record deleted successfully!', 'success')
     return redirect(url_for('equipment_downtime'))
 
+# Maintenance and Abnormality Report routes
+@app.route('/maintenance_report')
+@login_required
+def maintenance_report():
+    return render_template('maintenance_report.html')
+
 # Reports routes
 @app.route('/reports')
 @login_required
@@ -447,41 +512,122 @@ def generate_report():
         # Ensure end date is end of the day for inclusive queries
         end_date = datetime.combine(end_date, datetime.max.time())
         
+        # Create Excel workbook
+        wb = Workbook()
+        ws = wb.active
+        
+        # Set up headers and styles
+        header_font = Font(bold=True)
+        header_fill = PatternFill(start_color="C0C0C0", end_color="C0C0C0", fill_type="solid")
+        
         if report_type == 'soldering_tips':
             records = SolderingTip.query.filter(SolderingTip.date.between(start_date, end_date)).all()
-            return render_template('reports.html', 
-                                  form=form, 
-                                  records=records, 
-                                  report_type=report_type,
-                                  start_date=start_date,
-                                  end_date=end_date.date())
-                                  
+            headers = ['Machine Name', 'Engineer Name', 'Personnel Name', 'Shift', 'Date', 'Created At']
+            
+            # Add headers
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+            
+            # Add data
+            for row, record in enumerate(records, 2):
+                ws.cell(row=row, column=1, value=record.machine_name)
+                ws.cell(row=row, column=2, value=record.engineer_name)
+                ws.cell(row=row, column=3, value=record.personnel_name)
+                ws.cell(row=row, column=4, value=record.shift)
+                ws.cell(row=row, column=5, value=record.date.strftime('%Y-%m-%d'))
+                ws.cell(row=row, column=6, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
+            
+            filename = f'soldering_tips_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
+            
         elif report_type == 'machine_calibrations':
-            records = MachineCalibration.query.all()  # No date filter as calibrations aren't date-specific
-            return render_template('reports.html', 
-                                  form=form, 
-                                  records=records, 
-                                  report_type=report_type,
-                                  start_date=start_date,
-                                  end_date=end_date.date())
-                                  
+            records = MachineCalibration.query.all()
+            headers = ['Machine Name', 'Calibration Frequency', 'Location/Line', 'Operator Name', 'Created At']
+            
+            # Add headers
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+            
+            # Add data
+            for row, record in enumerate(records, 2):
+                ws.cell(row=row, column=1, value=record.machine_name)
+                ws.cell(row=row, column=2, value=f'Every {record.days_per_calibration} days')
+                ws.cell(row=row, column=3, value=record.location_line)
+                ws.cell(row=row, column=4, value=record.operator_name)
+                ws.cell(row=row, column=5, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
+            
+            filename = f'machine_calibrations_report_{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx'
+            
         elif report_type == 'overtime_logbook':
             records = OvertimeLogbook.query.filter(OvertimeLogbook.date.between(start_date, end_date)).all()
-            return render_template('reports.html', 
-                                  form=form, 
-                                  records=records, 
-                                  report_type=report_type,
-                                  start_date=start_date,
-                                  end_date=end_date.date())
-                                  
+            headers = ['Employee Name', 'Date', 'Hours', 'Created At']
+            
+            # Add headers
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+            
+            # Add data
+            for row, record in enumerate(records, 2):
+                ws.cell(row=row, column=1, value=record.employee_name)
+                ws.cell(row=row, column=2, value=record.date.strftime('%Y-%m-%d'))
+                ws.cell(row=row, column=3, value=record.hours)
+                ws.cell(row=row, column=4, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
+            
+            filename = f'overtime_logbook_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
+            
         elif report_type == 'equipment_downtime':
             records = EquipmentDowntime.query.filter(EquipmentDowntime.date.between(start_date, end_date)).all()
-            return render_template('reports.html', 
-                                  form=form, 
-                                  records=records, 
-                                  report_type=report_type,
-                                  start_date=start_date,
-                                  end_date=end_date.date())
+            headers = ['Equipment Name', 'Product Name', 'Issue', 'Downtime (min)', 'Shift', 'Action Taken', 'Date', 'Created At']
+            
+            # Add headers
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+            
+            # Add data
+            for row, record in enumerate(records, 2):
+                ws.cell(row=row, column=1, value=record.equipment_name)
+                ws.cell(row=row, column=2, value=record.product_name)
+                ws.cell(row=row, column=3, value=record.issue)
+                ws.cell(row=row, column=4, value=record.downtime_minutes)
+                ws.cell(row=row, column=5, value=record.shift)
+                ws.cell(row=row, column=6, value=record.action_taken)
+                ws.cell(row=row, column=7, value=record.date.strftime('%Y-%m-%d'))
+                ws.cell(row=row, column=8, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
+            
+            filename = f'equipment_downtime_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+        
+        # Save to BytesIO object
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        # Return as downloadable file
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
     
     return render_template('reports.html', form=form)
 

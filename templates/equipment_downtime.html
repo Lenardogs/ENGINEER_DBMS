@@ -1,190 +1,230 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="fas fa-power-off me-2"></i>Equipment Downtime Records</h2>
-        <p class="lead">Manage equipment downtime incidents</p>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    {% if edit_downtime %}
-                    <i class="fas fa-edit me-1"></i>Edit Downtime Record
-                    {% else %}
-                    <i class="fas fa-plus-circle me-1"></i>New Downtime Record
-                    {% endif %}
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if edit_downtime %}
-                <form method="POST" action="{{ url_for('edit_equipment_downtime', downtime_id=edit_downtime.id) }}">
-                {% else %}
-                <form method="POST" action="{{ url_for('add_equipment_downtime') }}">
-                {% endif %}
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        <label for="equipment_name" class="form-label">Equipment Name</label>
-                        {{ form.equipment_name(class="form-control", placeholder="Enter equipment name") }}
-                        {% for error in form.equipment_name.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="product_name" class="form-label">Product Name</label>
-                        {{ form.product_name(class="form-control", placeholder="Enter product name") }}
-                        {% for error in form.product_name.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="issue" class="form-label">Issue</label>
-                        {{ form.issue(class="form-control", placeholder="Describe the issue", rows=3) }}
-                        {% for error in form.issue.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="downtime_minutes" class="form-label">Downtime (minutes)</label>
-                        {{ form.downtime_minutes(class="form-control", placeholder="Enter downtime in minutes") }}
-                        {% for error in form.downtime_minutes.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="shift" class="form-label">Shift</label>
-                        {{ form.shift(class="form-select") }}
-                        {% for error in form.shift.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="action_taken" class="form-label">Action Taken</label>
-                        {{ form.action_taken(class="form-control", placeholder="Describe the action taken", rows=3) }}
-                        {% for error in form.action_taken.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="date" class="form-label">Date</label>
-                        {{ form.date(class="form-control", type="date") }}
-                        {% for error in form.date.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        {% if edit_downtime %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i>Update Record
-                        </button>
-                        <a href="{{ url_for('equipment_downtime') }}" class="btn btn-secondary">
-                            <i class="fas fa-times me-1"></i>Cancel
-                        </a>
-                        {% else %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-1"></i>Add Record
-                        </button>
-                        {% endif %}
-                    </div>
-                </form>
-            </div> 
+<div class="content-area">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="mb-0" style="color: white;">
+                <i class="fas fa-power-off me-2" style="color: white;"></i>
+                Equipment Downtime
+            </h1>
+            <p class="lead text-muted mb-0 bold-welcome">
+                Track and manage equipment downtime records
+            </p>
         </div>
     </div>
-    
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="fas fa-list me-1"></i>Downtime Record List</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <form class="d-flex" method="GET" action="{{ url_for('equipment_downtime') }}">
-                        <input type="text" class="form-control me-2" name="search" placeholder="Search by equipment name..." value="{{ search_query if search_query else '' }}">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search me-1"></i>Search
-                        </button>
-                    </form>
-                    <a href="{{ url_for('equipment_downtime') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-sync-alt me-1"></i>Reset
-                    </a>
+
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 2rem 0;
+            border-radius: 0 0 1rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .bold-welcome {
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+
+   
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {% if edit_downtime %}
+                        <i class="fas fa-edit me-1"></i>Edit Downtime Record
+                        {% else %}
+                        <i class="fas fa-plus-circle me-1"></i>New Downtime Record
+                        {% endif %}
+                    </h5>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Equipment</th>
-                                <th>Product</th>
-                                <th>Issue</th>
-                                <th>Downtime</th>
-                                <th>Shift</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for downtime in downtimes %}
-                            <tr>
-                                <td>{{ downtime.equipment_name }}</td>
-                                <td>{{ downtime.product_name }}</td>
-                                <td>{{ downtime.issue[:30] }}{% if downtime.issue|length > 30 %}...{% endif %}</td>
-                                <td>{{ downtime.downtime_minutes }} mins</td>
-                                <td>{{ downtime.shift|capitalize }}</td>
-                                <td>{{ downtime.date.strftime('%Y-%m-%d') }}</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ url_for('edit_equipment_downtime', downtime_id=downtime.id) }}" class="btn btn-warning">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDowntimeModal-{{ downtime.id }}">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Delete Confirmation Modal -->
-                            <div class="modal fade" id="deleteDowntimeModal-{{ downtime.id }}" tabindex="-1" aria-labelledby="deleteDowntimeModalLabel-{{ downtime.id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title" id="deleteDowntimeModalLabel-{{ downtime.id }}">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>Confirm Deletion
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="card-body">
+                    {% if edit_downtime %}
+                    <form method="POST" action="{{ url_for('edit_equipment_downtime', downtime_id=edit_downtime.id) }}">
+                    {% else %}
+                    <form method="POST" action="{{ url_for('add_equipment_downtime') }}">
+                    {% endif %}
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="equipment_name" class="form-label">Equipment Name</label>
+                            {{ form.equipment_name(class="form-control", placeholder="Enter equipment name") }}
+                            {% for error in form.equipment_name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="product_name" class="form-label">Product Name</label>
+                            {{ form.product_name(class="form-control", placeholder="Enter product name") }}
+                            {% for error in form.product_name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="issue" class="form-label">Issue</label>
+                            {{ form.issue(class="form-control", placeholder="Describe the issue", rows=3) }}
+                            {% for error in form.issue.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="downtime_minutes" class="form-label">Downtime (minutes)</label>
+                            {{ form.downtime_minutes(class="form-control", placeholder="Enter downtime in minutes") }}
+                            {% for error in form.downtime_minutes.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shift" class="form-label">Shift</label>
+                            {{ form.shift(class="form-select") }}
+                            {% for error in form.shift.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="action_taken" class="form-label">Action Taken</label>
+                            {{ form.action_taken(class="form-control", placeholder="Describe the action taken", rows=3) }}
+                            {% for error in form.action_taken.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            {{ form.date(class="form-control", type="date") }}
+                            {% for error in form.date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {% if edit_downtime %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Record
+                            </button>
+                            <a href="{{ url_for('equipment_downtime') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            {% else %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>Add Record
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div> 
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-1"></i>Equipment Downtime Records</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET" action="{{ url_for('equipment_downtime') }}">
+                                <input type="text" class="form-control me-2" name="search" placeholder="Search by equipment name..." value="{{ search_query if search_query else '' }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET" action="{{ url_for('equipment_downtime') }}">
+                                <div class="input-group me-2">
+                                    <input type="date" class="form-control" name="start_date" value="{{ start_date if start_date else '' }}">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" name="end_date" value="{{ end_date if end_date else '' }}">
+                                </div>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-calendar me-1"></i>Filter by Date
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Product</th>
+                                    <th>Issue</th>
+                                    <th>Downtime</th>
+                                    <th>Shift</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for downtime in downtimes %}
+                                <tr>
+                                    <td>{{ downtime.equipment_name }}</td>
+                                    <td>{{ downtime.product_name }}</td>
+                                    <td>{{ downtime.issue[:30] }}{% if downtime.issue|length > 30 %}...{% endif %}</td>
+                                    <td>{{ downtime.downtime_minutes }} mins</td>
+                                    <td>{{ downtime.shift|capitalize }}</td>
+                                    <td>{{ downtime.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('edit_equipment_downtime', downtime_id=downtime.id) }}" class="btn btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDowntimeModal-{{ downtime.id }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
                                         </div>
-                                        <div class="modal-body">
-                                            Are you sure you want to delete the downtime record for <strong>{{ downtime.equipment_name }}</strong> on <strong>{{ downtime.date.strftime('%Y-%m-%d') }}</strong>? This action cannot be undone.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ url_for('delete_equipment_downtime', downtime_id=downtime.id) }}" method="POST">
-                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                            </form>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteDowntimeModal-{{ downtime.id }}" tabindex="-1" aria-labelledby="deleteDowntimeModalLabel-{{ downtime.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title" id="deleteDowntimeModalLabel-{{ downtime.id }}">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Confirm Deletion
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the downtime record for <strong>{{ downtime.equipment_name }}</strong> on <strong>{{ downtime.date.strftime('%Y-%m-%d') }}</strong>? This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('delete_equipment_downtime', downtime_id=downtime.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            {% endfor %}
-                            
-                            {% if not downtimes %}
-                            <tr>
-                                <td colspan="7" class="text-center text-muted">No downtime records found</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                                {% endfor %}
+                                
+                                {% if not downtimes %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No downtime records found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

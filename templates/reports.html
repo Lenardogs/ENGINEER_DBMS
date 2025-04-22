@@ -1,234 +1,261 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="fas fa-file-alt me-2"></i>Reports</h2>
-        <p class="lead">Generate and view reports</p>
+<div class="content-area">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="mb-0" style="color: white;">
+                <i class="fas fa-file-alt me-2" style="color: white;"></i>
+                Reports
+            </h1>
+            <p class="lead text-muted mb-0 bold-welcome">
+                Generate and view system reports
+            </p>
+        </div>
     </div>
-</div>
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">  
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-filter me-1"></i>Report Filters</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('generate_report') }}">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        <label for="report_type" class="form-label">Report Type</label>
-                        {{ form.report_type(class="form-select") }}
-                        {% for error in form.report_type.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="date_range" class="form-label">Date Range</label>
-                        <div class="input-group">
-                            <span class="input-group-text">From</span>
-                            {{ form.start_date(class="form-control", type="date") }}
-                            <span class="input-group-text">To</span>
-                            {{ form.end_date(class="form-control", type="date") }}
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 2rem 0;
+            border-radius: 0 0 1rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .bold-welcome {
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">  
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-filter me-1"></i>Report Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('generate_report') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="report_type" class="form-label">Report Type</label>
+                            {{ form.report_type(class="form-select") }}
+                            {% for error in form.report_type.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
-                        {% for error in form.start_date.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                        {% for error in form.end_date.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
+                        
+                        <div class="mb-3">
+                            <label for="date_range" class="form-label">Date Range</label>
+                            <div class="input-group">
+                                <span class="input-group-text">From</span>
+                                {{ form.start_date(class="form-control", type="date") }}
+                                <span class="input-group-text">To</span>
+                                {{ form.end_date(class="form-control", type="date") }}
+                            </div>
+                            {% for error in form.start_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% for error in form.end_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>Generate Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            {% if report_type %}
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            {% if report_type == 'soldering_tips' %}
+                            <i class="fas fa-tools me-1"></i>Soldering Tip Requisition Report
+                            {% elif report_type == 'machine_calibrations' %}
+                            <i class="fas fa-cogs me-1"></i>Machine Calibration Report
+                            {% elif report_type == 'overtime_logbook' %}
+                            <i class="fas fa-user-clock me-1"></i>Overtime Logbook Report
+                            {% elif report_type == 'equipment_downtime' %}
+                            <i class="fas fa-power-off me-1"></i>Equipment Downtime Report
+                            {% endif %}
+                        </h5>
+                        <div class="text-white small">
+                            {{ start_date.strftime('%Y-%m-%d') }} to {{ end_date.strftime('%Y-%m-%d') }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        {% if report_type == 'soldering_tips' %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Machine Name</th>
+                                    <th>Engineer</th>
+                                    <th>Personnel</th>
+                                    <th>Shift</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ record.machine_name }}</td>
+                                    <td>{{ record.engineer_name }}</td>
+                                    <td>{{ record.personnel_name }}</td>
+                                    <td>{{ record.shift|capitalize }}</td>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if not records %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No records found in the selected date range</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        
+                        {% elif report_type == 'machine_calibrations' %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Machine Name</th>
+                                    <th>Calibration Frequency</th>
+                                    <th>Location/Line</th>
+                                    <th>Operator</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ record.machine_name }}</td>
+                                    <td>Every {{ record.days_per_calibration }} days</td>
+                                    <td>{{ record.location_line }}</td>
+                                    <td>{{ record.operator_name }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if not records %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No records found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        
+                        {% elif report_type == 'overtime_logbook' %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employee Name</th>
+                                    <th>Date</th>
+                                    <th>Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ record.employee_name }}</td>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ record.hours }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if not records %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No records found in the selected date range</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                            {% if records %}
+                            <tfoot>
+                                <tr class="table-secondary">
+                                    <td colspan="2" class="text-end"><strong>Total Hours:</strong></td>
+                                    <td><strong>{{ records|sum(attribute='hours') }}</strong></td>
+                                </tr>
+                            </tfoot>
+                            {% endif %}
+                        </table>
+                        
+                        {% elif report_type == 'equipment_downtime' %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Product</th>
+                                    <th>Issue</th>
+                                    <th>Downtime</th>
+                                    <th>Shift</th>
+                                    <th>Action Taken</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ record.equipment_name }}</td>
+                                    <td>{{ record.product_name }}</td>
+                                    <td>{{ record.issue[:30] }}{% if record.issue|length > 30 %}...{% endif %}</td>
+                                    <td>{{ record.downtime_minutes }} mins</td>
+                                    <td>{{ record.shift|capitalize }}</td>
+                                    <td>{{ record.action_taken[:30] }}{% if record.action_taken|length > 30 %}...{% endif %}</td>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                {% if not records %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No records found in the selected date range</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                            {% if records %}
+                            <tfoot>
+                                <tr class="table-secondary">
+                                    <td colspan="3" class="text-end"><strong>Total Downtime:</strong></td>
+                                    <td colspan="4"><strong>{{ records|sum(attribute='downtime_minutes') }} minutes</strong></td>
+                                </tr>
+                            </tfoot>
+                            {% endif %}
+                        </table>
+                        {% endif %}
                     </div>
                     
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search me-1"></i>Generate Report
+                    {% if records %}
+                    <div class="mt-3">
+                        <button class="btn btn-success" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i>Print Report
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-8">
-        {% if report_type %}
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        {% if report_type == 'soldering_tips' %}
-                        <i class="fas fa-tools me-1"></i>Soldering Tip Requisition Report
-                        {% elif report_type == 'machine_calibrations' %}
-                        <i class="fas fa-cogs me-1"></i>Machine Calibration Report
-                        {% elif report_type == 'overtime_logbook' %}
-                        <i class="fas fa-user-clock me-1"></i>Overtime Logbook Report
-                        {% elif report_type == 'equipment_downtime' %}
-                        <i class="fas fa-power-off me-1"></i>Equipment Downtime Report
-                        {% endif %}
-                    </h5>
-                    <div class="text-white small">
-                        {{ start_date.strftime('%Y-%m-%d') }} to {{ end_date.strftime('%Y-%m-%d') }}
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    {% if report_type == 'soldering_tips' %}
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Machine Name</th>
-                                <th>Engineer</th>
-                                <th>Personnel</th>
-                                <th>Shift</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for record in records %}
-                            <tr>
-                                <td>{{ record.machine_name }}</td>
-                                <td>{{ record.engineer_name }}</td>
-                                <td>{{ record.personnel_name }}</td>
-                                <td>{{ record.shift|capitalize }}</td>
-                                <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                            </tr>
-                            {% endfor %}
-                            
-                            {% if not records %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">No records found in the selected date range</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                    
-                    {% elif report_type == 'machine_calibrations' %}
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Machine Name</th>
-                                <th>Calibration Frequency</th>
-                                <th>Location/Line</th>
-                                <th>Operator</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for record in records %}
-                            <tr>
-                                <td>{{ record.machine_name }}</td>
-                                <td>Every {{ record.days_per_calibration }} days</td>
-                                <td>{{ record.location_line }}</td>
-                                <td>{{ record.operator_name }}</td>
-                            </tr>
-                            {% endfor %}
-                            
-                            {% if not records %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted">No records found</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                    
-                    {% elif report_type == 'overtime_logbook' %}
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Employee Name</th>
-                                <th>Date</th>
-                                <th>Hours</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for record in records %}
-                            <tr>
-                                <td>{{ record.employee_name }}</td>
-                                <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                                <td>{{ record.hours }}</td>
-                            </tr>
-                            {% endfor %}
-                            
-                            {% if not records %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">No records found in the selected date range</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                        {% if records %}
-                        <tfoot>
-                            <tr class="table-secondary">
-                                <td colspan="2" class="text-end"><strong>Total Hours:</strong></td>
-                                <td><strong>{{ records|sum(attribute='hours') }}</strong></td>
-                            </tr>
-                        </tfoot>
-                        {% endif %}
-                    </table>
-                    
-                    {% elif report_type == 'equipment_downtime' %}
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Equipment</th>
-                                <th>Product</th>
-                                <th>Issue</th>
-                                <th>Downtime</th>
-                                <th>Shift</th>
-                                <th>Action Taken</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for record in records %}
-                            <tr>
-                                <td>{{ record.equipment_name }}</td>
-                                <td>{{ record.product_name }}</td>
-                                <td>{{ record.issue[:30] }}{% if record.issue|length > 30 %}...{% endif %}</td>
-                                <td>{{ record.downtime_minutes }} mins</td>
-                                <td>{{ record.shift|capitalize }}</td>
-                                <td>{{ record.action_taken[:30] }}{% if record.action_taken|length > 30 %}...{% endif %}</td>
-                                <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                            </tr>
-                            {% endfor %}
-                            
-                            {% if not records %}
-                            <tr>
-                                <td colspan="7" class="text-center text-muted">No records found in the selected date range</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                        {% if records %}
-                        <tfoot>
-                            <tr class="table-secondary">
-                                <td colspan="3" class="text-end"><strong>Total Downtime:</strong></td>
-                                <td colspan="4"><strong>{{ records|sum(attribute='downtime_minutes') }} minutes</strong></td>
-                            </tr>
-                        </tfoot>
-                        {% endif %}
-                    </table>
                     {% endif %}
                 </div>
-                
-                {% if records %}
-                <div class="mt-3">
-                    <button class="btn btn-success" onclick="window.print()">
-                        <i class="fas fa-print me-1"></i>Print Report
-                    </button>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-file-alt fa-4x mb-3 text-muted"></i>
+                    <h4>Select Report Parameters</h4>
+                    <p class="text-muted">Choose a report type and date range to generate a report.</p>
                 </div>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="card">
-            <div class="card-body text-center p-5">
-                <i class="fas fa-file-alt fa-4x mb-3 text-muted"></i>
-                <h4>Select Report Parameters</h4>
-                <p class="text-muted">Choose a report type and date range to generate a report.</p>
-            </div>
-        </div>
-        {% endif %}
     </div>
-</div>
 {% endblock %}

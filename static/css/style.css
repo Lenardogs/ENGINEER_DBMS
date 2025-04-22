@@ -213,10 +213,43 @@ body {
         margin-left: 0;
     }
 }
+.sidebar-toggle.collapsed {
+    left: var(--sidebar-collapsed-width);  /* Use CSS variable */
+    opacity: 1;  /* Always visible */
+    visibility: visible;  /* Always visible */
+    
+}
+.sidebar-toggle.collapsed {
+    opacity: 1 !important;  /* Remove opacity hiding */
+    visibility: visible !important;  /* Remove visibility hiding */
+}
 
 /* Ensure content doesn't overlap with fixed navbar */
 .content-area {
     padding-top: 60px; /* Adjust this value based on your navbar height */
+}
+.sidebar-toggle {
+    position: fixed;  /* Changed from absolute */
+    top: 1rem;
+    left: var(--sidebar-width);  /* Use CSS variable for positioning */
+    z-index: 1050;
+    
+    /* ... rest of the styles ... */
+    
+}
+
+/* Sidebar Branding Styles */
+.sidebar-brand {
+    padding: 1.5rem;
+    height: 60px;
+}
+
+.sidebar-brand .navbar-brand {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-left: 0rem;  /* Add left padding */
+    padding-top: 2.5rem;
 }
 
 /* Custom form styles */

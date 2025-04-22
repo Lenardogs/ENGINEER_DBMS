@@ -670,11 +670,16 @@
             <path d="M0 0 L0 100 Q25 75 50 65 Q75 75 100 100 L100 0 Q75 25 50 45 Q25 25 0 0 Z" fill="var(--accent-secondary)"/>
         </svg>
         <div class="sidebar-brand">
+<<<<<<< HEAD
             <a href="{{ url_for('dashboard') }}">
                 <div class="logo">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="HKEPH Logo">
                 </div>
                 <span>HKEPH Engineering DB</span>
+=======
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <span>HKEPH Engineering</span>
+>>>>>>> adc584b8d3cdc3cd9725a0e881c6c91687d67a0a
             </a>
         </div>
         {% if current_user.is_authenticated %}

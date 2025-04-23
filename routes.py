@@ -31,6 +31,12 @@ def dashboard():
     recent_overtime = OvertimeLogbook.query.order_by(OvertimeLogbook.created_at.desc()).limit(5).all()
     recent_downtimes = EquipmentDowntime.query.order_by(EquipmentDowntime.created_at.desc()).limit(5).all()
     
+    # Get upcoming calibrations
+    upcoming_calibrations = MachineCalibration.query.filter(
+        MachineCalibration.date.isnot(None),
+        MachineCalibration.date <= datetime.now() + timedelta(days=7)
+    ).all()
+    
     return render_template('dashboard.html', 
                            soldering_tips_count=soldering_tips_count,
                            machine_calibrations_count=machine_calibrations_count,
@@ -39,7 +45,8 @@ def dashboard():
                            recent_soldering=recent_soldering,
                            recent_calibrations=recent_calibrations,
                            recent_overtime=recent_overtime,
-                           recent_downtimes=recent_downtimes)
+                           recent_downtimes=recent_downtimes,
+                           upcoming_calibrations=upcoming_calibrations)
 
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -264,26 +271,29 @@ def machine_calibrations():
     form = MachineCalibrationForm()
     return render_template('machine_calibration.html', calibrations=calibrations, form=form, search_query=search_query)
 
-@app.route('/machine-calibrations/add', methods=['POST'])
+@app.route('/machine-calibrations/add', methods=['GET', 'POST'])
 @login_required
 def add_machine_calibration():
     form = MachineCalibrationForm()
     if form.validate_on_submit():
+        # Calculate the next calibration date based on the frequency
+        if form.date.data:
+            next_calibration_date = form.date.data + timedelta(days=form.days_per_calibration.data)
+        else:
+            next_calibration_date = datetime.now() + timedelta(days=form.days_per_calibration.data)
+        
         calibration = MachineCalibration(
             machine_name=form.machine_name.data,
             days_per_calibration=form.days_per_calibration.data,
             location_line=form.location_line.data,
-            operator_name=form.operator_name.data
+            operator_name=form.operator_name.data,
+            date=next_calibration_date
         )
         db.session.add(calibration)
         db.session.commit()
-        flash('Machine calibration schedule added successfully!', 'success')
-    else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{error}", 'danger')
-    
-    return redirect(url_for('machine_calibrations'))
+        flash('Calibration schedule added successfully!', 'success')
+        return redirect(url_for('machine_calibrations'))
+    return render_template('machine_calibration.html', form=form, edit_calibration=None)
 
 @app.route('/machine-calibrations/edit/<int:calibration_id>', methods=['GET', 'POST'])
 @login_required
@@ -292,19 +302,22 @@ def edit_machine_calibration(calibration_id):
     form = MachineCalibrationForm(obj=calibration)
     
     if form.validate_on_submit():
+        # Calculate the next calibration date based on the frequency
+        if form.date.data:
+            next_calibration_date = form.date.data + timedelta(days=form.days_per_calibration.data)
+        else:
+            next_calibration_date = datetime.now() + timedelta(days=form.days_per_calibration.data)
+        
         calibration.machine_name = form.machine_name.data
         calibration.days_per_calibration = form.days_per_calibration.data
         calibration.location_line = form.location_line.data
         calibration.operator_name = form.operator_name.data
-        
+        calibration.date = next_calibration_date
         db.session.commit()
-        flash('Machine calibration schedule updated successfully!', 'success')
+        flash('Calibration schedule updated successfully!', 'success')
         return redirect(url_for('machine_calibrations'))
     
-    return render_template('machine_calibration.html', 
-                           calibrations=MachineCalibration.query.all(), 
-                           form=form, 
-                           edit_calibration=calibration)
+    return render_template('machine_calibration.html', form=form, edit_calibration=calibration)
 
 @app.route('/machine-calibrations/delete/<int:calibration_id>', methods=['POST'])
 @login_required
@@ -982,3 +995,26 @@ def delete_maintenance_report(report_id):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in {'jpg', 'jpeg', 'png', 'gif'}
+
+@app.route('/api/check-calibrations')
+@login_required
+def check_calibrations():
+    today = datetime.now()
+    threshold_days = 7  # Notify if calibration is within 7 days
+    
+    upcoming_calibrations = MachineCalibration.query.filter(
+        MachineCalibration.date.isnot(None),
+        MachineCalibration.date <= today + timedelta(days=threshold_days)
+    ).all()
+    
+    return jsonify({
+        'upcoming_calibrations': [
+            {
+                'id': cal.id,
+                'machine_name': cal.machine_name,
+                'date': cal.date.strftime('%Y-%m-%d'),
+                'days_until': (cal.date - today).days
+            }
+            for cal in upcoming_calibrations
+        ]
+    })

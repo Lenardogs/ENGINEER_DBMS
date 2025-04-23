@@ -31,6 +31,7 @@ class MachineCalibration(db.Model):
     days_per_calibration = db.Column(db.Integer, nullable=False)
     location_line = db.Column(db.String(100), nullable=False)
     operator_name = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
@@ -59,7 +60,6 @@ class EquipmentDowntime(db.Model):
     
     def __repr__(self):
         return f'<EquipmentDowntime {self.equipment_name} {self.date}>'
-
 
 class MaintenanceReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)

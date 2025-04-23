@@ -35,6 +35,7 @@ class MachineCalibrationForm(FlaskForm):
         ('PC POWER', 'PC POWER')
     ], validators=[DataRequired()])
     operator_name = StringField('Operator Name', validators=[DataRequired()])
+    date = DateField('Calibration Date', validators=[DataRequired()], format='%Y-%m-%d')
     submit = SubmitField('Save')
 
 class OvertimeLogbookForm(FlaskForm):

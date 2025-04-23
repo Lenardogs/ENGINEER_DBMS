@@ -88,6 +88,14 @@
                             {% endfor %}
                         </div>
                         
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Last Calibration Date</label>
+                            {{ form.date(class="form-control", type="date") }}
+                            {% for error in form.date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
                         <div class="d-grid gap-2">
                             {% if edit_calibration %}
                             <button type="submit" class="btn btn-primary">
@@ -131,6 +139,7 @@
                             <thead>
                                 <tr>
                                     <th>Machine Name</th>
+                                    <th>Next Calibration Date</th>
                                     <th>Calibration Frequency</th>
                                     <th>Location/Line</th>
                                     <th>Operator</th>
@@ -141,6 +150,7 @@
                                 {% for calibration in calibrations %}
                                 <tr>
                                     <td>{{ calibration.machine_name }}</td>
+                                    <td>{{ calibration.date.strftime('%Y-%m-%d') if calibration.date else 'Not set' }}</td>
                                     <td>Every {{ calibration.days_per_calibration }} days</td>
                                     <td>{{ calibration.location_line }}</td>
                                     <td>{{ calibration.operator_name }}</td>
@@ -182,7 +192,7 @@
                                 
                                 {% if not calibrations %}
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">No calibration schedules found</td>
+                                    <td colspan="6" class="text-center text-muted">No calibration schedules found</td>
                                 </tr>
                                 {% endif %}
                             </tbody>

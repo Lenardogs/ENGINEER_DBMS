@@ -60,3 +60,19 @@ class EquipmentDowntime(db.Model):
     def __repr__(self):
         return f'<EquipmentDowntime {self.equipment_name} {self.date}>'
 
+
+class MaintenanceReport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    model_id = db.Column(db.String(50), nullable=False)
+    model_name = db.Column(db.String(100), nullable=False)
+    client_id = db.Column(db.String(50), nullable=False)
+    client_name = db.Column(db.String(100), nullable=False)
+    station = db.Column(db.String(50), nullable=False)
+    affected_component = db.Column(db.String(200), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    problem_description = db.Column(db.Text, nullable=False)
+    evidence = db.Column(db.String(255))  # Will store filename/path of uploaded image
+    analysis = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(50), default='Open')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

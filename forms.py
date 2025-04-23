@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SelectField, TextAreaField, IntegerField, FloatField, DateField, HiddenField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SelectField, TextAreaField, IntegerField, FloatField, DateField, HiddenField, SubmitField, FileField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange
 
 class LoginForm(FlaskForm):
@@ -60,3 +60,28 @@ class ReportForm(FlaskForm):
     ], validators=[DataRequired()])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
+
+
+
+
+class MaintenanceReportForm(FlaskForm):
+    model_id = StringField('Model ID', validators=[DataRequired()])
+    model_name = StringField('Model Name', validators=[DataRequired(), Length(max=100)])
+    client_name = SelectField('Client Name', choices=[
+        ('grandstream', 'Grandstream'),
+        ('aok', 'AOK'),
+        ('d-link', 'D-Link'),
+        ('srs', 'SRS'),
+        ('intracom', 'Intracom')
+    ], validators=[DataRequired()])
+    station = SelectField('Station', choices=[
+        ('smt', 'SMT'),
+        ('dip', 'DIP'),
+        ('assy', 'ASSY'),
+        ('packaging', 'PACKAGING')
+    ], validators=[DataRequired()])
+    affected_component = StringField('Affected Component', validators=[DataRequired(), Length(max=200)])
+    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
+    problem_description = TextAreaField('Problem Description', validators=[DataRequired()])
+    evidence = FileField('Evidence')
+    analysis = TextAreaField('Analysis', validators=[DataRequired()])

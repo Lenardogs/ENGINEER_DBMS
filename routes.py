@@ -9,7 +9,11 @@ from forms import LoginForm, UserForm, SolderingTipForm, MachineCalibrationForm,
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 from io import BytesIO
-
+from models import User, SolderingTip, MachineCalibration, OvertimeLogbook, EquipmentDowntime, MaintenanceReport
+from forms import LoginForm, UserForm, SolderingTipForm, MachineCalibrationForm, OvertimeLogbookForm, EquipmentDowntimeForm, ReportForm, MaintenanceReportForm
+from werkzeug.utils import secure_filename
+import os
+import json
 # Home/Dashboard route
 @app.route('/')
 @login_required
@@ -311,13 +315,30 @@ def delete_machine_calibration(calibration_id):
     flash('Machine calibration schedule deleted successfully!', 'success')
     return redirect(url_for('machine_calibrations'))
 
-# Overtime Logbook routes
 @app.route('/overtime-logbook')
 @login_required
 def overtime_logbook():
     search_query = request.args.get('search', '')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    page = request.args.get('page', 1, type=int)
+    
+    # Get current month's logs for chart
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    
+    # Calculate total hours per employee for the current month
+    monthly_overtime = db.session.query(
+        OvertimeLogbook.employee_name,
+        db.func.sum(OvertimeLogbook.hours).label('total_hours')
+    ).filter(
+        db.extract('month', OvertimeLogbook.date) == current_month,
+        db.extract('year', OvertimeLogbook.date) == current_year
+    ).group_by(OvertimeLogbook.employee_name).all()
+    
+    # Convert to format for chart
+    employee_names = [data[0] for data in monthly_overtime]
+    total_hours = [float(data[1]) for data in monthly_overtime]
     
     query = OvertimeLogbook.query
     
@@ -332,17 +353,24 @@ def overtime_logbook():
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
             query = query.filter(OvertimeLogbook.date.between(start_date, end_date))
         except ValueError:
-            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+            flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
     
-    logs = query.order_by(OvertimeLogbook.date.desc()).all()
+    logs = query.order_by(OvertimeLogbook.date.desc()).paginate(
+        page=page,
+        per_page=10,
+        error_out=False
+    )
+    
     form = OvertimeLogbookForm()
-    return render_template('overtime_logbook.html', 
-                           logs=logs, 
-                           form=form, 
-                           search_query=search_query,
-                           start_date=start_date,
-                           end_date=end_date)
-
+    
+    return render_template('overtime_logbook.html',
+                         logs=logs,
+                         form=form,
+                         employee_names=json.dumps(employee_names),
+                         total_hours=json.dumps(total_hours),
+                         search_query=search_query,
+                         start_date=start_date,
+                         end_date=end_date)
 @app.route('/overtime-logbook/add', methods=['POST'])
 @login_required
 def add_overtime_log():
@@ -774,3 +802,115 @@ def calibration_data():
             'borderWidth': 1
         }]
     })
+
+
+@app.route('/maintenance-reports', methods=['GET', 'POST'])
+@login_required
+def maintenance_reports():
+    form = MaintenanceReportForm()
+    if form.validate_on_submit():
+        # Handle image upload
+        evidence_file = request.files.get('evidence')
+        if evidence_file and allowed_file(evidence_file.filename):
+            filename = secure_filename(evidence_file.filename)
+            evidence_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        else:
+            filename = None
+        
+        # Generate client_id based on client_name and timestamp
+        client_id = f"{form.client_name.data.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        report = MaintenanceReport(
+            model_id=form.model_id.data,
+            model_name=form.model_name.data,
+            client_id=client_id,
+            client_name=form.client_name.data,
+            station=form.station.data,
+            affected_component=form.affected_component.data,
+            quantity=form.quantity.data,
+            problem_description=form.problem_description.data,
+            evidence=filename,
+            analysis=form.analysis.data,
+            status='Open'
+        )
+        db.session.add(report)
+        db.session.commit()
+        flash('Maintenance report created successfully!', 'success')
+        return redirect(url_for('maintenance_reports'))
+    
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    query = MaintenanceReport.query
+    
+    if search_query:
+        query = query.filter(
+            MaintenanceReport.model_name.ilike(f'%{search_query}%') |
+            MaintenanceReport.client_name.ilike(f'%{search_query}%') |
+            MaintenanceReport.station.ilike(f'%{search_query}%')
+        )
+    
+    if start_date and end_date:
+        query = query.filter(
+            MaintenanceReport.created_at >= start_date,
+            MaintenanceReport.created_at <= end_date
+        )
+    
+    reports = query.order_by(MaintenanceReport.created_at.desc()).paginate(
+        page=page,
+        per_page=10,
+        error_out=False
+    )
+    
+    return render_template('maintenance_reports.html', form=form, reports=reports)
+@app.route('/maintenance-reports/<int:report_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_maintenance_report(report_id):
+    report = MaintenanceReport.query.get_or_404(report_id)
+    form = MaintenanceReportForm(obj=report)
+    
+    if form.validate_on_submit():
+        # Handle image upload
+        evidence_file = request.files.get('evidence')
+        if evidence_file and allowed_file(evidence_file.filename):
+            filename = secure_filename(evidence_file.filename)
+            evidence_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            report.evidence = filename
+        
+        report.model_id = form.model_id.data
+        report.model_name = form.model_name.data
+        report.client_id = form.client_id.data
+        report.client_name = form.client_name.data
+        report.station = form.station.data
+        report.affected_component = form.affected_component.data
+        report.quantity = form.quantity.data
+        report.problem_description = form.problem_description.data
+        report.analysis = form.analysis.data
+        report.status = form.status.data
+        
+        db.session.commit()
+        flash('Maintenance report updated successfully!', 'success')
+        return redirect(url_for('maintenance_reports'))
+    
+    return render_template('maintenance_reports.html', form=form, report=report)
+
+@app.route('/maintenance-reports/<int:report_id>/delete', methods=['POST'])
+@login_required
+def delete_maintenance_report(report_id):
+    report = MaintenanceReport.query.get_or_404(report_id)
+    if report.evidence:
+        try:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], report.evidence))
+        except:
+            pass
+    db.session.delete(report)
+    db.session.commit()
+    flash('Maintenance report deleted successfully!', 'success')
+    return redirect(url_for('maintenance_reports'))
+
+# Helper function for file uploads
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in {'jpg', 'jpeg', 'png', 'gif'}

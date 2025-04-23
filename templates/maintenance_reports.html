@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-area">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="mb-0" style="color: white;">
+                <i class="fas fa-wrench me-2" style="color: white;"></i>
+                Maintenance & Abnormality Report
+            </h1>
+            <p class="lead text-muted mb-0 bold-welcome">
+                Track and manage equipment maintenance and abnormalities
+            </p>
+        </div>
+    </div>
+
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            padding: 2rem 0;
+            border-radius: 0 0 1rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .bold-welcome {
+            font-weight: bold;
+            color: white;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .table-responsive {
+            max-height: 600px;
+        }
+    </style>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-1"></i>New Maintenance Report
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.model_id.label(class="form-label") }}
+                                {{ form.model_id(class="form-control", placeholder="Enter Model ID") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.model_name.label(class="form-label") }}
+                                {{ form.model_name(class="form-control", placeholder="Enter Model Name") }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.client_name.label(class="form-label") }}
+                                {{ form.client_name(class="form-control") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.station.label(class="form-label") }}
+                                {{ form.station(class="form-control") }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.affected_component.label(class="form-label") }}
+                                {{ form.affected_component(class="form-control", placeholder="Enter Affected Component") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.quantity.label(class="form-label") }}
+                                {{ form.quantity(class="form-control") }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.problem_description.label(class="form-label") }}
+                                {{ form.problem_description(class="form-control", rows="3") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.evidence.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.evidence(class="form-control") }}
+                                    <label class="input-group-text" for="evidence">
+                                        <i class="fas fa-upload"></i> Upload Image
+                                    </label>
+                                </div>
+                                <small class="text-muted">Supported formats: JPG, PNG, GIF. Max size: 5MB per file</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                {{ form.analysis.label(class="form-label") }}
+                                {{ form.analysis(class="form-control", rows="3") }}
+                            </div>
+                        </div>
+    
+                        
+    
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>Submit Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-1"></i>Maintenance Report List
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET">
+                                <input type="text" class="form-control me-2" name="search" placeholder="Search by model name...">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET">
+                                <div class="input-group me-2">
+                                    <input type="date" class="form-control" name="start_date">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" name="end_date">
+                                </div>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-calendar me-1"></i>Filter by Date
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Model ID</th>
+                                        <th>Model Name</th>
+                                        <th>Client Name</th>
+                                        <th>Station</th>
+                                        <th>Affected Component</th>
+                                        <th>Quantity</th>
+                                        <th>Problem Description</th>
+                                        <th>Evidence</th>
+                                        <th>Analysis</th>
+                                        
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in reports.items %}
+                                    <tr>
+                                        <td>{{ report.model_id }}</td>
+                                        <td>{{ report.model_name }}</td>
+                                        <td>{{ report.client_name }}</td>
+                                        <td>{{ report.station }}</td>
+                                        <td>{{ report.affected_component }}</td>
+                                        <td>{{ report.quantity }}</td>
+                                        <td>{{ report.problem_description }}</td>
+                                        <td>
+                                            {% if report.evidence %}
+                                            <a href="{{ url_for('static', filename='uploads/' + report.evidence) }}" target="_blank">
+                                                <i class="fas fa-image"></i> View Image
+                                            </a>
+                                            {% else %}
+                                            <span class="text-muted">No evidence attached</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ report.analysis }}</td>
+                                        <td>
+                                            <a href="{{ url_for('edit_maintenance_report', report_id=report.id) }}" 
+                                               class="btn btn-sm btn-primary">Edit</a>
+                                            <form action="{{ url_for('delete_maintenance_report', report_id=report.id) }}" 
+                                                  method="POST" 
+                                                  style="display: inline;">
+                                                <button type="submit" class="btn btn-sm btn-danger" 
+                                                        onclick="return confirm('Are you sure you want to delete this report?')">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if reports.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('maintenance_reports', page=reports.prev_num) }}">Previous</a>
+                                </li>
+                                {% endif %}
+                                {% for page in reports.iter_pages() %}
+                                {% if page %}
+                                <li class="page-item {% if page == reports.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('maintenance_reports', page=page) }}">{{ page }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                {% if reports.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('maintenance_reports', page=reports.next_num) }}">Next</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add date range picker script -->
+<script type="text/javascript">
+    $(function() {
+        $('input[name="dateRange"]').daterangepicker({
+            opens: 'left',
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            }
+        });
+
+        $('input[name="dateRange"]').on('apply.daterangepicker', function(ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+        });
+
+        $('input[name="dateRange"]').on('cancel.daterangepicker', function(ev, picker) {
+            $(this).val('');
+        });
+    });
+</script>
+{% endblock %}

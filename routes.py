@@ -371,6 +371,8 @@ def overtime_logbook():
                          search_query=search_query,
                          start_date=start_date,
                          end_date=end_date)
+
+
 @app.route('/overtime-logbook/add', methods=['POST'])
 @login_required
 def add_overtime_log():

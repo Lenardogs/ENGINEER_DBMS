@@ -32,9 +32,22 @@
             font-weight: bold;
             color: white;
         }
-    </style>
 
-    
+        .chart-container {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 100%;
+            margin: 2rem auto;
+            height: 400px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: 150px;
+        }
+    </style>
 
     <div class="row mb-4">
         <div class="col-md-4">
@@ -193,5 +206,111 @@
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Move chart to bottom -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Monthly Overtime Hours</h4>
+                    <select id="periodFilter" class="form-select" style="width: auto;">
+                        <option value="month">Whole Month</option>
+                        <option value="15days">15 Days</option>
+                    </select>
+                </div>
+                <canvas id="overtimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Get date range for the current month
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        
+        // Initialize chart
+        let chart = null;
+        
+        function updateChart(period) {
+            // Get date range based on period
+            let from_date, to_date;
+            if (period === '15days') {
+                from_date = new Date(today - 15 * 24 * 60 * 60 * 1000);
+                to_date = today;
+            } else { // month
+                from_date = firstDay;
+                to_date = lastDay;
+            }
+            
+            // Fetch data
+            fetch(`/api/monthly-overtime-data?period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update chart if it exists, otherwise create new
+                    if (chart) {
+                        chart.data.labels = data.labels;
+                        chart.data.datasets[0].data = data.data;
+                        chart.update();
+                    } else {
+                        const ctx = document.getElementById('overtimeChart').getContext('2d');
+                        chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: data.labels,
+                                datasets: [{
+                                    label: 'Total Overtime Hours',
+                                    data: data.data,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Hours'
+                                        },
+                                        ticks: {
+                                            max: 10,
+                                            stepSize: 2
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Employee'
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Overtime Hours'
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+        }
+        
+        // Initial load
+        updateChart('month');
+        
+        // Add event listener for period filter
+        document.getElementById('periodFilter').addEventListener('change', function() {
+            updateChart(this.value);
+        });
+    </script>
+
 {% endblock %}

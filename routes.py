@@ -805,6 +805,44 @@ def calibration_data():
         }]
     })
 
+@app.route('/api/monthly-overtime-data')
+@login_required
+def monthly_overtime_data():
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+    period = request.args.get('period', 'month')  # Default to month
+    
+    today = datetime.now()
+    
+    if not from_date or not to_date:
+        if period == '15days':
+            from_date = (today - timedelta(days=15)).strftime('%Y-%m-%d')
+            to_date = today.strftime('%Y-%m-%d')
+        else:  # Default to month
+            from_date = datetime(today.year, today.month, 1).strftime('%Y-%m-%d')
+            to_date = (datetime(today.year, today.month, 1) + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            to_date = to_date.strftime('%Y-%m-%d')
+    
+    # Get monthly overtime data
+    monthly_overtime = db.session.query(
+        OvertimeLogbook.employee_name,
+        db.func.sum(OvertimeLogbook.hours).label('total_hours')
+    ).filter(
+        OvertimeLogbook.date.between(from_date, to_date)
+    ).group_by(
+        OvertimeLogbook.employee_name
+    ).order_by(
+        OvertimeLogbook.employee_name
+    ).all()
+    
+    # Prepare data for chart
+    labels = [record.employee_name for record in monthly_overtime]
+    data = [float(record.total_hours) for record in monthly_overtime]
+    
+    return jsonify({
+        'labels': labels,
+        'data': data
+    })
 
 @app.route('/maintenance-reports', methods=['GET', 'POST'])
 @login_required

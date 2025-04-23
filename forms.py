@@ -56,13 +56,11 @@ class ReportForm(FlaskForm):
         ('soldering_tips', 'Soldering Tip Requisition'),
         ('machine_calibrations', 'Machine Calibration Scheduler'),
         ('overtime_logbook', 'Overtime Logbook'),
-        ('equipment_downtime', 'Equipment Downtime Record')
+        ('equipment_downtime', 'Equipment Downtime Record'),
+        ('maintenance_reports', 'Maintenance and Abnormality Reports')
     ], validators=[DataRequired()])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
-
-
-
 
 class MaintenanceReportForm(FlaskForm):
     model_id = StringField('Model ID', validators=[DataRequired()])

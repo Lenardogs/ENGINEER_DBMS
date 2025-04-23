@@ -529,25 +529,25 @@ def generate_report():
         start_date = form.start_date.data
         end_date = form.end_date.data
         
-        # Ensure end date is end of the day for inclusive queries
-        end_date = datetime.combine(end_date, datetime.max.time())
-        
-        # Get the records based on report type
         if report_type == 'soldering_tips':
             records = SolderingTip.query.filter(SolderingTip.date.between(start_date, end_date)).all()
-            headers = ['Machine Name', 'Engineer Name', 'Personnel Name', 'Shift', 'Date', 'Created At']
-            
+            headers = ['Machine Name', 'Engineer Name', 'Personnel Name', 'Shift', 'Date']
+        
         elif report_type == 'machine_calibrations':
-            records = MachineCalibration.query.all()
-            headers = ['Machine Name', 'Calibration Frequency', 'Location/Line', 'Operator Name', 'Created At']
-            
+            records = MachineCalibration.query.filter(MachineCalibration.created_at.between(start_date, end_date)).all()
+            headers = ['Machine Name', 'Days per Calibration', 'Location/Line', 'Operator Name', 'Date']
+        
         elif report_type == 'overtime_logbook':
             records = OvertimeLogbook.query.filter(OvertimeLogbook.date.between(start_date, end_date)).all()
             headers = ['Employee Name', 'Date', 'Hours', 'Created At']
-            
+        
         elif report_type == 'equipment_downtime':
             records = EquipmentDowntime.query.filter(EquipmentDowntime.date.between(start_date, end_date)).all()
             headers = ['Equipment Name', 'Product Name', 'Issue', 'Downtime (min)', 'Shift', 'Action Taken', 'Date', 'Created At']
+            
+        elif report_type == 'maintenance_reports':
+            records = MaintenanceReport.query.filter(MaintenanceReport.created_at.between(start_date, end_date)).all()
+            headers = ['Model ID', 'Model Name', 'Client Name', 'Station', 'Affected Component', 'Quantity', 'Problem Description', 'Status', 'Created At']
         
         # Return the data for preview
         return render_template('reports.html', 
@@ -601,7 +601,7 @@ def download_report():
         filename = f'soldering_tips_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
         
     elif report_type == 'machine_calibrations':
-        records = MachineCalibration.query.all()
+        records = MachineCalibration.query.filter(MachineCalibration.created_at.between(start_date, end_date)).all()
         headers = ['Machine Name', 'Calibration Frequency', 'Location/Line', 'Operator Name', 'Created At']
         
         # Add headers
@@ -661,6 +661,30 @@ def download_report():
             ws.cell(row=row, column=8, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
         
         filename = f'equipment_downtime_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
+    
+    elif report_type == 'maintenance_reports':
+        records = MaintenanceReport.query.filter(MaintenanceReport.created_at.between(start_date, end_date)).all()
+        headers = ['Model ID', 'Model Name', 'Client Name', 'Station', 'Affected Component', 'Quantity', 'Problem Description', 'Status', 'Created At']
+        
+        # Add headers
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+        
+        # Add data
+        for row, record in enumerate(records, 2):
+            ws.cell(row=row, column=1, value=record.model_id)
+            ws.cell(row=row, column=2, value=record.model_name)
+            ws.cell(row=row, column=3, value=record.client_name)
+            ws.cell(row=row, column=4, value=record.station)
+            ws.cell(row=row, column=5, value=record.affected_component)
+            ws.cell(row=row, column=6, value=record.quantity)
+            ws.cell(row=row, column=7, value=record.problem_description)
+            ws.cell(row=row, column=8, value=record.status)
+            ws.cell(row=row, column=9, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
+        
+        filename = f'maintenance_reports_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
     
     # Save the workbook to a BytesIO object
     output = BytesIO()

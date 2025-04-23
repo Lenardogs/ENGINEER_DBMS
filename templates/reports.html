@@ -93,6 +93,8 @@
                             <i class="fas fa-user-clock me-1"></i>Overtime Logbook Report
                             {% elif report_type == 'equipment_downtime' %}
                             <i class="fas fa-power-off me-1"></i>Equipment Downtime Report
+                            {% elif report_type == 'maintenance_reports' %}
+                            <i class="fas fa-wrench me-1"></i>Maintenance Reports
                             {% endif %}
                         </h5>
                         <div class="text-white small">
@@ -198,13 +200,14 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Equipment</th>
-                                    <th>Product</th>
+                                    <th>Equipment Name</th>
+                                    <th>Product Name</th>
                                     <th>Issue</th>
-                                    <th>Downtime</th>
+                                    <th>Downtime (min)</th>
                                     <th>Shift</th>
                                     <th>Action Taken</th>
                                     <th>Date</th>
+                                    <th>Created At</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -212,29 +215,104 @@
                                 <tr>
                                     <td>{{ record.equipment_name }}</td>
                                     <td>{{ record.product_name }}</td>
-                                    <td>{{ record.issue[:30] }}{% if record.issue|length > 30 %}...{% endif %}</td>
-                                    <td>{{ record.downtime_minutes }} mins</td>
+                                    <td>{{ record.issue }}</td>
+                                    <td>{{ record.downtime_minutes }}</td>
                                     <td>{{ record.shift|capitalize }}</td>
-                                    <td>{{ record.action_taken[:30] }}{% if record.action_taken|length > 30 %}...{% endif %}</td>
+                                    <td>{{ record.action_taken }}</td>
                                     <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                                 </tr>
                                 {% endfor %}
                                 
                                 {% if not records %}
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted">No records found in the selected date range</td>
+                                    <td colspan="8" class="text-center text-muted">No records found in the selected date range</td>
                                 </tr>
                                 {% endif %}
                             </tbody>
-                            {% if records %}
-                            <tfoot>
-                                <tr class="table-secondary">
-                                    <td colspan="3" class="text-end"><strong>Total Downtime:</strong></td>
-                                    <td colspan="4"><strong>{{ records|sum(attribute='downtime_minutes') }} minutes</strong></td>
-                                </tr>
-                            </tfoot>
-                            {% endif %}
                         </table>
+                        
+                        {% elif report_type == 'maintenance_reports' %}
+                        <div class="maintenance-reports-container">
+                            {% for record in records %}
+                            <div class="maintenance-report-card mb-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="mb-3">Maintenance Report #{{ record.model_id }}</h5>
+                                        <div class="report-details">
+                                            <div class="detail-item">
+                                                <strong>Model Name:</strong> {{ record.model_name }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <strong>Client:</strong> {{ record.client_name }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <strong>Station:</strong> {{ record.station|capitalize }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <strong>Affected Component:</strong> {{ record.affected_component }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <strong>Quantity:</strong> {{ record.quantity }}
+                                            </div>
+                                            <div class="detail-item">
+                                                <strong>Status:</strong>
+                                                <span class="badge {% if record.status == 'open' %}bg-warning{% elif record.status == 'in_progress' %}bg-info{% else %}bg-success{% endif %}">
+                                                    {{ record.status|capitalize }}
+                                                </span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <strong>Created At:</strong> {{ record.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="problem-description mb-3">
+                                            <h6>Problem Description:</h6>
+                                            <p class="mb-0">{{ record.problem_description }}</p>
+                                        </div>
+                                        <div class="analysis mb-3">
+                                            <h6>Analysis:</h6>
+                                            <p class="mb-0">{{ record.analysis }}</p>
+                                        </div>
+                                        {% if record.evidence %}
+                                        <div class="evidence-container">
+                                            <h6>Evidence:</h6>
+                                            <img src="{{ url_for('static', filename='uploads/' + record.evidence) }}" 
+                                                 alt="Evidence Image" 
+                                                 class="evidence-image"
+                                                 style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if not records %}
+                            <div class="no-records text-center py-5">
+                                <i class="fas fa-file-alt fa-4x mb-3 text-muted"></i>
+                                <p class="text-muted">No maintenance reports found in the selected date range</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if records %}
+                        <div class="mt-3">
+                            <div class="btn-group">
+                                <button class="btn btn-success" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>Print Report
+                                </button>
+                                <form action="{{ url_for('download_report') }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="report_type" value="maintenance_reports">
+                                    <input type="hidden" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
+                                    <input type="hidden" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-file-excel me-1"></i>Export to Excel
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% endif %}
                     </div>
                     

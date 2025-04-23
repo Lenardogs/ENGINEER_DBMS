@@ -519,10 +519,11 @@ def reports():
     form = ReportForm()
     return render_template('reports.html', form=form)
 
-@app.route('/reports/generate', methods=['POST'])
+@app.route('/reports/generate', methods=['GET', 'POST'])
 @login_required
 def generate_report():
     form = ReportForm()
+    
     if form.validate_on_submit():
         report_type = form.report_type.data
         start_date = form.start_date.data
@@ -550,12 +551,15 @@ def generate_report():
         
         # Return the data for preview
         return render_template('reports.html', 
+            form=form,
             report_type=report_type,
             start_date=start_date,
             end_date=end_date,
             records=records,
             headers=headers,
             preview=True)
+
+    return render_template('reports.html', form=form)
 
 @app.route('/reports/download', methods=['POST'])
 @login_required

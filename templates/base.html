@@ -709,7 +709,13 @@
             <li class="nav-item">
                 <a class="nav-link {% if request.path == url_for('equipment_downtime') %}active fw-bold{% endif %}" href="{{ url_for('equipment_downtime') }}">
                     <i class="fas fa-power-off"></i>
-                    <span>Equipment Downtime</span>
+                    <span>Equipment Downtime</span>                 
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == url_for('it_inventory') %}active fw-bold{% endif %}" href="{{ url_for('it_inventory') }}">
+                    <i class="fas fa-desktop"></i>
+                    <span>IT Inventory</span>
                 </a>
             </li>
             <li class="nav-item">

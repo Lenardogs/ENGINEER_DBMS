@@ -19,7 +19,7 @@ class UserForm(FlaskForm):
 
 class SolderingTipForm(FlaskForm):
     machine_name = StringField('Machine Name', validators=[DataRequired(), Length(max=100)])
-    engineer_name = StringField('Engineer Name', validators=[DataRequired(), Length(max=100)])
+    engineer_name = SelectField('Engineer Name', validators=[DataRequired()], choices=[])  # Will be populated dynamically
     personnel_name = StringField('Personnel Name', validators=[DataRequired(), Length(max=100)])
     shift = SelectField('Shift', choices=[('morning', 'Morning'), ('afternoon', 'Afternoon'), ('night', 'Night')], validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
@@ -84,3 +84,9 @@ class MaintenanceReportForm(FlaskForm):
     problem_description = TextAreaField('Problem Description', validators=[DataRequired()])
     evidence = FileField('Evidence')
     analysis = TextAreaField('Analysis', validators=[DataRequired()])
+
+class ITInventoryForm(FlaskForm):
+    item_name = StringField('Item Name', validators=[DataRequired()])
+    total_quantity = IntegerField('Total Quantity', validators=[DataRequired(), NumberRange(min=0)])
+    acquired_qty = IntegerField('Acquired Qty', validators=[DataRequired(), NumberRange(min=0)])
+    

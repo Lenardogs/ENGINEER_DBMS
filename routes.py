@@ -2,6 +2,10 @@ import calendar
 from datetime import datetime, timedelta
 from flask import render_template, redirect, url_for, flash, request, jsonify, send_file
 from flask_login import login_user, logout_user, login_required, current_user
+from flask import render_template, redirect, url_for, flash, request
+from models import ITInventory
+from forms import ITInventoryForm
+from app import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app, db
 from models import User, SolderingTip, MachineCalibration, OvertimeLogbook, EquipmentDowntime
@@ -18,6 +22,7 @@ import json
 @app.route('/')
 @login_required
 def dashboard():
+    
     # Count records for each module
     soldering_tips_count = SolderingTip.query.count()
     machine_calibrations_count = MachineCalibration.query.count()
@@ -201,29 +206,35 @@ def soldering_tips():
     
     tips = query.order_by(SolderingTip.date.desc()).all()
     form = SolderingTipForm()
+    
+    # Get all usernames for the engineer_name dropdown
+    form.engineer_name.choices = [(user.username, user.username) for user in User.query.all()]
+    
     return render_template('soldering_tip.html', tips=tips, form=form, search_query=search_query, start_date=start_date, end_date=end_date)
 
 @app.route('/soldering-tips/add', methods=['POST'])
 @login_required
 def add_soldering_tip():
     form = SolderingTipForm()
+    
+    # Get all usernames for the engineer_name dropdown
+    form.engineer_name.choices = [(user.username, user.username) for user in User.query.all()]
+    
     if form.validate_on_submit():
-        tip = SolderingTip(
+        new_tip = SolderingTip(
             machine_name=form.machine_name.data,
             engineer_name=form.engineer_name.data,
             personnel_name=form.personnel_name.data,
             shift=form.shift.data,
-            date=form.date.data
+            date=form.date.data,
+            created_at=datetime.utcnow()
         )
-        db.session.add(tip)
+        db.session.add(new_tip)
         db.session.commit()
         flash('Soldering tip requisition added successfully!', 'success')
-    else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{error}", 'danger')
+        return redirect(url_for('soldering_tips'))
     
-    return redirect(url_for('soldering_tips'))
+    return render_template('soldering_tip.html', form=form)
 
 @app.route('/soldering-tips/edit/<int:tip_id>', methods=['GET', 'POST'])
 @login_required
@@ -231,18 +242,19 @@ def edit_soldering_tip(tip_id):
     tip = SolderingTip.query.get_or_404(tip_id)
     form = SolderingTipForm(obj=tip)
     
+    # Get all usernames for the engineer_name dropdown
+    form.engineer_name.choices = [(user.username, user.username) for user in User.query.all()]
+    
     if form.validate_on_submit():
         tip.machine_name = form.machine_name.data
         tip.engineer_name = form.engineer_name.data
         tip.personnel_name = form.personnel_name.data
         tip.shift = form.shift.data
         tip.date = form.date.data
-        
         db.session.commit()
         flash('Soldering tip requisition updated successfully!', 'success')
         return redirect(url_for('soldering_tips'))
     
-    # For GET request, show the form with current values
     return render_template('soldering_tip.html', 
                            tips=SolderingTip.query.order_by(SolderingTip.date.desc()).all(), 
                            form=form, 
@@ -335,7 +347,9 @@ def overtime_logbook():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
-    
+    form = OvertimeLogbookForm()  # <-- instantiate form first
+    form.employee_name.choices = [(user.username, user.username) for user in User.query.all()]
+
     # Get current month's logs for chart
     current_month = datetime.now().month
     current_year = datetime.now().year
@@ -390,6 +404,7 @@ def overtime_logbook():
 @login_required
 def add_overtime_log():
     form = OvertimeLogbookForm()
+    form.employee_name.choices = [(user.username, user.username) for user in User.query.all()]
     if form.validate_on_submit():
         log = OvertimeLogbook(
             employee_name=form.employee_name.data,
@@ -411,7 +426,7 @@ def add_overtime_log():
 def edit_overtime_log(log_id):
     log = OvertimeLogbook.query.get_or_404(log_id)
     form = OvertimeLogbookForm(obj=log)
-    
+    form.employee_name.choices = [(user.username, user.username) for user in User.query.all()]
     if form.validate_on_submit():
         log.employee_name = form.employee_name.data
         log.date = form.date.data
@@ -991,6 +1006,8 @@ def delete_maintenance_report(report_id):
     flash('Maintenance report deleted successfully!', 'success')
     return redirect(url_for('maintenance_reports'))
 
+
+
 # Helper function for file uploads
 def allowed_file(filename):
     return '.' in filename and \
@@ -1018,3 +1035,22 @@ def check_calibrations():
             for cal in upcoming_calibrations
         ]
     })
+
+
+@app.route('/it-inventory', methods=['GET', 'POST'])
+@login_required
+def it_inventory():
+    form = ITInventoryForm()
+    if form.validate_on_submit():
+        new_item = ITInventory(
+            item_name=form.item_name.data,
+            total_quantity=form.total_quantity.data,
+            acquired_qty=form.acquired_qty.data
+        )
+        db.session.add(new_item)
+        db.session.commit()
+        flash('Item added successfully!', 'success')
+        return redirect(url_for('it_inventory'))
+
+    inventory_items = ITInventory.query.all()
+    return render_template('it_inventory.html', form=form, inventory_items=inventory_items)

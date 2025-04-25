@@ -2,6 +2,7 @@ from datetime import datetime
 from app import db
 from flask_login import UserMixin
 
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
@@ -76,3 +77,11 @@ class MaintenanceReport(db.Model):
     status = db.Column(db.String(50), default='Open')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    
+class ITInventory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_name = db.Column(db.String(100), nullable=False)
+    total_quantity = db.Column(db.Integer, nullable=False)
+    acquired_qty = db.Column(db.Integer, nullable=False)
+    

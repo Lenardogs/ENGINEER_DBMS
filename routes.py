@@ -1040,17 +1040,61 @@ def check_calibrations():
 @app.route('/it-inventory', methods=['GET', 'POST'])
 @login_required
 def it_inventory():
+    edit_id = request.args.get('edit_id')
     form = ITInventoryForm()
+
+    if edit_id:
+        item_to_edit = ITInventory.query.get(edit_id)
+        if item_to_edit and request.method == 'GET':
+            # Prefill form with item data
+            form.item_name.data = item_to_edit.item_name
+            form.total_quantity.data = item_to_edit.total_quantity
+            form.acquired_qty.data = item_to_edit.acquired_qty
+
     if form.validate_on_submit():
-        new_item = ITInventory(
-            item_name=form.item_name.data,
-            total_quantity=form.total_quantity.data,
-            acquired_qty=form.acquired_qty.data
-        )
-        db.session.add(new_item)
-        db.session.commit()
-        flash('Item added successfully!', 'success')
+        if edit_id:
+            # Update existing item
+            item_to_edit = ITInventory.query.get(edit_id)
+            if item_to_edit:
+                item_to_edit.item_name = form.item_name.data
+                item_to_edit.total_quantity = form.total_quantity.data
+                item_to_edit.acquired_qty = form.acquired_qty.data
+                db.session.commit()
+                flash('Item updated successfully!', 'success')
+        else:
+            # Insert new item
+            new_item = ITInventory(
+                item_name=form.item_name.data,
+                total_quantity=form.total_quantity.data,
+                acquired_qty=form.acquired_qty.data
+            )
+            db.session.add(new_item)
+            db.session.commit()
+            flash('Item added successfully!', 'success')
         return redirect(url_for('it_inventory'))
 
     inventory_items = ITInventory.query.all()
-    return render_template('it_inventory.html', form=form, inventory_items=inventory_items)
+    return render_template('it_inventory.html', form=form, inventory_items=inventory_items, edit_id=edit_id)
+
+@app.route('/it-inventory/edit/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def edit_it_inventory(item_id):
+    item = ITInventory.query.get_or_404(item_id)
+    form = ITInventoryForm(obj=item)
+    if form.validate_on_submit():
+        item.item_name = form.item_name.data
+        item.total_quantity = form.total_quantity.data
+        item.acquired_qty = form.acquired_qty.data
+        db.session.commit()
+        flash('Item updated successfully!', 'success')
+        return redirect(url_for('it_inventory'))
+    return render_template('edit_it_inventory.html', form=form, item=item)
+
+@app.route('/it-inventory/delete/<int:item_id>', methods=['POST', 'GET'])
+@login_required
+def delete_it_inventory(item_id):
+    item = ITInventory.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    flash('Item deleted successfully!', 'success')
+    return redirect(url_for('it_inventory'))

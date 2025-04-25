@@ -347,8 +347,9 @@ def overtime_logbook():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
-    form = OvertimeLogbookForm()  # <-- instantiate form first
-    form.employee_name.choices = [(user.username, user.username) for user in User.query.all()]
+    form = OvertimeLogbookForm()
+    form.employee_name.choices = [(user.id, user.username) for user in User.query.all()]
+    form.employee_name.coerce = int
 
     # Get current month's logs for chart
     current_month = datetime.now().month
@@ -388,8 +389,6 @@ def overtime_logbook():
         error_out=False
     )
     
-    form = OvertimeLogbookForm()
-    
     return render_template('overtime_logbook.html',
                          logs=logs,
                          form=form,
@@ -404,7 +403,8 @@ def overtime_logbook():
 @login_required
 def add_overtime_log():
     form = OvertimeLogbookForm()
-    form.employee_name.choices = [(user.username, user.username) for user in User.query.all()]
+    form.employee_name.choices = [(user.id, user.username) for user in User.query.all()]
+    form.employee_name.coerce = int
     if form.validate_on_submit():
         log = OvertimeLogbook(
             employee_name=form.employee_name.data,
@@ -426,7 +426,8 @@ def add_overtime_log():
 def edit_overtime_log(log_id):
     log = OvertimeLogbook.query.get_or_404(log_id)
     form = OvertimeLogbookForm(obj=log)
-    form.employee_name.choices = [(user.username, user.username) for user in User.query.all()]
+    form.employee_name.choices = [(user.id, user.username) for user in User.query.all()]
+    form.employee_name.coerce = int
     if form.validate_on_submit():
         log.employee_name = form.employee_name.data
         log.date = form.date.data

@@ -903,64 +903,44 @@ def monthly_overtime_data():
 @app.route('/maintenance-reports', methods=['GET', 'POST'])
 @login_required
 def maintenance_reports():
-    form = MaintenanceReportForm()
+    edit_id = request.args.get('edit_id', type=int)
+    report_to_edit = None
+    if edit_id:
+        report_to_edit = MaintenanceReport.query.get(edit_id)
+        form = MaintenanceReportForm(obj=report_to_edit)
+    else:
+        form = MaintenanceReportForm()
+
     if form.validate_on_submit():
-        # Handle image upload
         evidence_file = request.files.get('evidence')
-        if evidence_file and allowed_file(evidence_file.filename):
+        filename = None
+        if evidence_file and evidence_file.filename and allowed_file(evidence_file.filename):
             filename = secure_filename(evidence_file.filename)
             evidence_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        if edit_id and report_to_edit:
+            # Update existing report
+            form.populate_obj(report_to_edit)
+            if filename:
+                report_to_edit.evidence = filename  # Only assign the filename if a new file was uploaded!
+            # Do NOT overwrite evidence if no file is uploaded!
+            db.session.commit()
+            flash('Maintenance report updated successfully!', 'success')
         else:
-            filename = None
-        
-        # Generate client_id based on client_name and timestamp
-        client_id = f"{form.client_name.data.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        
-        report = MaintenanceReport(
-            model_id=form.model_id.data,
-            model_name=form.model_name.data,
-            client_id=client_id,
-            client_name=form.client_name.data,
-            station=form.station.data,
-            affected_component=form.affected_component.data,
-            quantity=form.quantity.data,
-            problem_description=form.problem_description.data,
-            evidence=filename,
-            analysis=form.analysis.data,
-            status='Open'
-        )
-        db.session.add(report)
-        db.session.commit()
-        flash('Maintenance report created successfully!', 'success')
+            # Insert new report
+            new_report = MaintenanceReport()
+            form.populate_obj(new_report)
+            if filename:
+                new_report.evidence = filename
+            db.session.add(new_report)
+            db.session.commit()
+            flash('Maintenance report added successfully!', 'success')
         return redirect(url_for('maintenance_reports'))
-    
+
+    # Fetch reports for the list
     page = request.args.get('page', 1, type=int)
-    search_query = request.args.get('search', '')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    
-    query = MaintenanceReport.query
-    
-    if search_query:
-        query = query.filter(
-            MaintenanceReport.model_name.ilike(f'%{search_query}%') |
-            MaintenanceReport.client_name.ilike(f'%{search_query}%') |
-            MaintenanceReport.station.ilike(f'%{search_query}%')
-        )
-    
-    if start_date and end_date:
-        query = query.filter(
-            MaintenanceReport.created_at >= start_date,
-            MaintenanceReport.created_at <= end_date
-        )
-    
-    reports = query.order_by(MaintenanceReport.created_at.desc()).paginate(
-        page=page,
-        per_page=10,
-        error_out=False
-    )
-    
-    return render_template('maintenance_reports.html', form=form, reports=reports)
+    reports = MaintenanceReport.query.order_by(MaintenanceReport.created_at.desc()).paginate(page=page, per_page=10, error_out=False)
+    return render_template('maintenance_reports.html', form=form, reports=reports, edit_id=edit_id)
 @app.route('/maintenance-reports/<int:report_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_maintenance_report(report_id):
@@ -968,29 +948,31 @@ def edit_maintenance_report(report_id):
     form = MaintenanceReportForm(obj=report)
     
     if form.validate_on_submit():
-        # Handle image upload
-        evidence_file = request.files.get('evidence')
-        if evidence_file and allowed_file(evidence_file.filename):
-            filename = secure_filename(evidence_file.filename)
-            evidence_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            report.evidence = filename
-        
-        report.model_id = form.model_id.data
-        report.model_name = form.model_name.data
-        report.client_id = form.client_id.data
-        report.client_name = form.client_name.data
-        report.station = form.station.data
-        report.affected_component = form.affected_component.data
-        report.quantity = form.quantity.data
-        report.problem_description = form.problem_description.data
-        report.analysis = form.analysis.data
-        report.status = form.status.data
-        
-        db.session.commit()
-        flash('Maintenance report updated successfully!', 'success')
+        if edit_id and report_to_edit:
+            # Update existing report
+            form.populate_obj(report_to_edit)
+            # Handle evidence upload
+            evidence_file = request.files.get('evidence')
+            if evidence_file and evidence_file.filename and allowed_file(evidence_file.filename):
+                filename = secure_filename(evidence_file.filename)
+                evidence_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                report_to_edit.evidence = filename  # Only assign the filename!
+            # Do NOT overwrite evidence if no file is uploaded!
+            db.session.commit()
+            flash('Maintenance report updated successfully!', 'success')
+        else:
+            # Insert new report
+            new_report = MaintenanceReport()
+            form.populate_obj(new_report)
+            evidence_file = request.files.get('evidence')
+            if evidence_file and evidence_file.filename and allowed_file(evidence_file.filename):
+                filename = secure_filename(evidence_file.filename)
+                evidence_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                new_report.evidence = filename
+            db.session.add(new_report)
+            db.session.commit()
+            flash('Maintenance report added successfully!', 'success')
         return redirect(url_for('maintenance_reports'))
-    
-    return render_template('maintenance_reports.html', form=form, report=report)
 
 @app.route('/maintenance-reports/<int:report_id>/delete', methods=['POST'])
 @login_required
@@ -1040,17 +1022,61 @@ def check_calibrations():
 @app.route('/it-inventory', methods=['GET', 'POST'])
 @login_required
 def it_inventory():
+    edit_id = request.args.get('edit_id')
     form = ITInventoryForm()
+
+    if edit_id:
+        item_to_edit = ITInventory.query.get(edit_id)
+        if item_to_edit and request.method == 'GET':
+            # Prefill form with item data
+            form.item_name.data = item_to_edit.item_name
+            form.total_quantity.data = item_to_edit.total_quantity
+            form.acquired_qty.data = item_to_edit.acquired_qty
+
     if form.validate_on_submit():
-        new_item = ITInventory(
-            item_name=form.item_name.data,
-            total_quantity=form.total_quantity.data,
-            acquired_qty=form.acquired_qty.data
-        )
-        db.session.add(new_item)
-        db.session.commit()
-        flash('Item added successfully!', 'success')
+        if edit_id:
+            # Update existing item
+            item_to_edit = ITInventory.query.get(edit_id)
+            if item_to_edit:
+                item_to_edit.item_name = form.item_name.data
+                item_to_edit.total_quantity = form.total_quantity.data
+                item_to_edit.acquired_qty = form.acquired_qty.data
+                db.session.commit()
+                flash('Item updated successfully!', 'success')
+        else:
+            # Insert new item
+            new_item = ITInventory(
+                item_name=form.item_name.data,
+                total_quantity=form.total_quantity.data,
+                acquired_qty=form.acquired_qty.data
+            )
+            db.session.add(new_item)
+            db.session.commit()
+            flash('Item added successfully!', 'success')
         return redirect(url_for('it_inventory'))
 
     inventory_items = ITInventory.query.all()
-    return render_template('it_inventory.html', form=form, inventory_items=inventory_items)
+    return render_template('it_inventory.html', form=form, inventory_items=inventory_items, edit_id=edit_id)
+
+@app.route('/it-inventory/edit/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def edit_it_inventory(item_id):
+    item = ITInventory.query.get_or_404(item_id)
+    form = ITInventoryForm(obj=item)
+    if form.validate_on_submit():
+        item.item_name = form.item_name.data
+        item.total_quantity = form.total_quantity.data
+        item.acquired_qty = form.acquired_qty.data
+        db.session.commit()
+        flash('Item updated successfully!', 'success')
+        return redirect(url_for('it_inventory'))
+    return render_template('edit_it_inventory.html', form=form, item=item)
+
+@app.route('/it-inventory/delete/<int:item_id>', methods=['POST', 'GET'])
+@login_required
+def delete_it_inventory(item_id):
+    item = ITInventory.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    flash('Item deleted successfully!', 'success')
+    return redirect(url_for('it_inventory'))

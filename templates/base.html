@@ -128,38 +128,32 @@
             margin-right: 0;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 991.98px) {
             .sidebar {
                 width: var(--sidebar-collapsed-width);
+                position: fixed;
+                left: 0;
+                top: 0;
             }
             
-            .sidebar.collapsed {
-                width: var(--sidebar-collapsed-width);
+            .sidebar .nav-link span {
+                display: none;
             }
             
-            .content-area {
-                margin-left: var(--sidebar-collapsed-width);
-            }
-            
-            .sidebar-toggle {
-                left: 1rem;
+            .sidebar .nav-link i {
+                font-size: 1.5rem;
             }
         }
 
-        /* Responsive Content Area */
+        /* Content area adjustments */
         .content-area {
             margin-left: var(--sidebar-width);
-            transition: all 0.3s ease;
-            width: calc(100% - var(--sidebar-width));
-            min-height: 100vh;
-            padding: 20px;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 991.98px) {
             .content-area {
                 margin-left: var(--sidebar-collapsed-width);
-                width: calc(100% - var(--sidebar-collapsed-width));
-                padding: 10px;
             }
         }
 
@@ -494,103 +488,6 @@
             margin-right: 0.5rem;
         }
 
-        /* Sidebar Toggle Button */
-        .sidebar-toggle {
-            position: fixed;
-            top: 1rem;
-            left: 1.5rem;
-            z-index: 1050;
-            width: 40px;
-            height: 40px;
-            border: none;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            outline: none;
-            backdrop-filter: blur(5px);
-            opacity: 1;
-        }
-
-        .sidebar-toggle:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .sidebar-toggle:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar-toggle.collapsed {
-            left: 1.5rem;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(0);
-        }
-
-        .sidebar-toggle i {
-            font-size: 1.2rem;
-            color: var(--accent-secondary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: center;
-        }
-
-        .sidebar-toggle.collapsed i {
-            transform: rotate(180deg);
-        }
-
-        @media (max-width: 991.98px) {
-            .sidebar-toggle {
-                position: absolute;
-                top: 1rem;
-                left: 1rem;
-                width: 40px;
-                height: 40px;
-                z-index: 1000;
-                backdrop-filter: blur(3px);
-            }
-
-            .sidebar-toggle.collapsed {
-                left: 1rem;
-                opacity: 0;
-                visibility: hidden;
-                transform: translateX(0);
-            }
-
-            .sidebar-toggle i {
-                font-size: 1.1rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .sidebar-toggle {
-                width: 35px;
-                height: 35px;
-                top: 0.75rem;
-                left: 0.75rem;
-                backdrop-filter: blur(2px);
-            }
-
-            .sidebar-toggle.collapsed {
-                opacity: 0;
-                visibility: hidden;
-            }
-
-            .sidebar-toggle i {
-                font-size: 1rem;
-            }
-
-            .sidebar-toggle:active {
-                transform: scale(0.9);
-            }
-        }
-
         /* Responsive Sidebar */
         @media (max-width: 768px) {
             .sidebar {
@@ -666,7 +563,9 @@
 </head>
 <body class="{% block body_class %}{% endblock %}" style="height: 100%; margin: 0;">
     <!-- Sidebar Toggle Button -->
-    
+    <button class="sidebar-toggle" type="button" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
@@ -804,26 +703,6 @@
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
         <!-- Custom JS -->
         <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const sidebar = document.getElementById('sidebar');
-                const sidebarToggle = document.getElementById('sidebarToggle');
-
-                // Toggle sidebar on click
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('collapsed');
-                    this.classList.toggle('collapsed');
-                });
-
-                // Handle window resize
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth <= 991.98) {
-                        sidebar.classList.remove('collapsed');
-                        sidebarToggle.classList.remove('collapsed');
-                    }
-                });
-            });
-        </script>
         {% block scripts %}{% endblock %}
     </body>
     </html>

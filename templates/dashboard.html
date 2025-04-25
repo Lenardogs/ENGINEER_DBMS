@@ -138,6 +138,26 @@
                 margin-left: 0 !important;
             }
 
+            .dashboard-header {
+                height: auto;
+                padding: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .dashboard-header .header-content {
+                padding: 1rem;
+                border-radius: 0.5rem;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .dashboard-header .lead {
+                font-size: 1rem;
+            }
+
             .stat-card {
                 margin-bottom: 1rem;
             }
@@ -147,7 +167,7 @@
             }
 
             .stat-card .card-body {
-                padding: 1.25rem;
+                padding: 1rem;
             }
 
             .stat-card h5 {
@@ -156,6 +176,68 @@
 
             .stat-card p {
                 font-size: 0.85rem;
+            }
+
+            .row {
+                margin-left: -0.5rem;
+                margin-right: -0.5rem;
+            }
+
+            .col-md-3 {
+                width: 100%;
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .card-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .card {
+                margin: 0.5rem;
+            }
+
+            .chart-container {
+                min-height: 250px;
+            }
+
+            .chart-container canvas {
+                width: 100%;
+                height: auto;
+            }
+
+            .table-responsive {
+                margin-bottom: 1rem;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content-area {
+                padding: 0.75rem;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .dashboard-header .lead {
+                font-size: 0.9rem;
+            }
+
+            .stat-card h1 {
+                font-size: 1.8rem;
+            }
+
+            .stat-card h5 {
+                font-size: 0.9rem;
+            }
+
+            .stat-card p {
+                font-size: 0.8rem;
             }
         }
 
@@ -215,6 +297,65 @@
         @media (max-width: 768px) {
             .recent-activity .list-group-item {
                 padding: 0.75rem 1rem;
+            }
+        }
+
+        /* Equipment Downtime Styles */
+        .downtime-item {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .downtime-item .downtime-duration {
+            font-weight: bold;
+            color: var(--accent-primary);
+            font-size: 1.1rem;
+        }
+
+        .downtime-item .downtime-details {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .downtime-item .downtime-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .downtime-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .downtime-item .downtime-duration {
+                font-size: 1.2rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .downtime-item .downtime-details {
+                min-width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .downtime-item .downtime-date {
+                font-size: 0.85rem;
+            }
+
+            .list-group-item {
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .downtime-item .downtime-duration {
+                font-size: 1.1rem;
+            }
+
+            .list-group-item {
+                padding: 0.5rem 0.75rem;
             }
         }
     </style>
@@ -343,7 +484,7 @@
 
     <div class="row">
         <!-- Recent Equipment Downtimes -->
-        <div class="col-md-6 mb-4">
+        <div class="col-12 mb-4">
             <div class="card h-100">
                 <div class="card-header" style="background-color: var(--accent-primary); color: white;">
                     <h5><i class="fas fa-power-off me-2"></i>Recent Equipment Downtimes</h5>
@@ -352,9 +493,14 @@
                     <ul class="list-group list-group-flush">
                         {% if recent_downtimes %}
                             {% for downtime in recent_downtimes %}
-                                <li class="list-group-item">
-                                    <strong style="color: var(--accent-primary);">{{ downtime.equipment_name }}</strong> - {{ downtime.downtime_minutes }} minutes
-                                    <div class="small text-muted">{{ downtime.date.strftime('%Y-%m-%d') }} ({{ downtime.shift }} shift)</div>
+                                <li class="list-group-item downtime-item">
+                                    <span class="downtime-duration">{{ downtime.downtime_minutes }} minutes</span>
+                                    <div class="downtime-details">
+                                        <strong style="color: var(--accent-primary);">{{ downtime.equipment_name }}</strong>
+                                    </div>
+                                    <div class="downtime-date">
+                                        {{ downtime.date.strftime('%Y-%m-%d') }} ({{ downtime.shift }} shift)
+                                    </div>
                                 </li>
                             {% endfor %}
                         {% else %}

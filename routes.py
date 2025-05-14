@@ -407,7 +407,7 @@ def add_overtime_log():
     form.employee_name.coerce = int
     if form.validate_on_submit():
         log = OvertimeLogbook(
-            employee_name=form.employee_name.data,
+            employee_name=(User.query.get(form.employee_name.data).username if isinstance(form.employee_name.data, int) and User.query.get(form.employee_name.data) else form.employee_name.data),
             date=form.date.data,
             hours=form.hours.data
         )
@@ -429,7 +429,7 @@ def edit_overtime_log(log_id):
     form.employee_name.choices = [(user.id, user.username) for user in User.query.all()]
     form.employee_name.coerce = int
     if form.validate_on_submit():
-        log.employee_name = form.employee_name.data
+        log.employee_name = (User.query.get(form.employee_name.data).username if isinstance(form.employee_name.data, int) and User.query.get(form.employee_name.data) else form.employee_name.data)
         log.date = form.date.data
         log.hours = form.hours.data
         
@@ -693,7 +693,10 @@ def download_report():
     
     elif report_type == 'maintenance_reports':
         records = MaintenanceReport.query.filter(MaintenanceReport.created_at.between(start_date, end_date)).all()
-        headers = ['Model ID', 'Model Name', 'Client Name', 'Station', 'Affected Component', 'Quantity', 'Problem Description', 'Status', 'Created At']
+        headers = ['Model ID', 'Model Name', 'Client Name', 'Station', 'Affected Component', 'Quantity', 'Problem Description', 'Status', 'Created At', 'Evidence Image']
+        from openpyxl.drawing.image import Image as XLImage
+        import os
+        from PIL import Image as PILImage
         
         # Add headers
         for col, header in enumerate(headers, 1):
@@ -702,6 +705,7 @@ def download_report():
             cell.fill = header_fill
         
         # Add data
+        temp_image_paths = []  # To store temp files for later cleanup
         for row, record in enumerate(records, 2):
             ws.cell(row=row, column=1, value=record.model_id)
             ws.cell(row=row, column=2, value=record.model_name)
@@ -712,13 +716,45 @@ def download_report():
             ws.cell(row=row, column=7, value=record.problem_description)
             ws.cell(row=row, column=8, value=record.status)
             ws.cell(row=row, column=9, value=record.created_at.strftime('%Y-%m-%d %H:%M'))
-        
+
+            # Insert evidence image if available
+            evidence_path = record.evidence
+            if evidence_path:
+                image_full_path = os.path.join(app.config['UPLOAD_FOLDER'], evidence_path)
+                if os.path.isfile(image_full_path):
+                    try:
+                        # Optionally resize for Excel
+                        with PILImage.open(image_full_path) as img:
+                            max_dim = 120
+                            img.thumbnail((max_dim, max_dim))
+                            temp_path = image_full_path + '_excel_tmp.png'
+                            img.save(temp_path, format='PNG')
+                        img_xl = XLImage(temp_path)
+                        img_xl.width, img_xl.height = img.size
+                        cell_ref = f'J{row}'
+                        ws.add_image(img_xl, cell_ref)
+                        temp_image_paths.append(temp_path)  # Defer cleanup
+                    except Exception as e:
+                        ws.cell(row=row, column=10, value='Image error')
+                else:
+                    ws.cell(row=row, column=10, value='Not found')
+            else:
+                ws.cell(row=row, column=10, value='No image')
+
         filename = f'maintenance_reports_report_{start_date.strftime("%Y%m%d")}_{end_date.strftime("%Y%m%d")}.xlsx'
     
     # Save the workbook to a BytesIO object
     output = BytesIO()
     wb.save(output)
     output.seek(0)
+
+    # Clean up temp image files if any
+    if 'temp_image_paths' in locals():
+        for temp_path in temp_image_paths:
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
     
     # Return the Excel file for download
     return send_file(
@@ -931,6 +967,8 @@ def maintenance_reports():
             # Insert new report
             new_report = MaintenanceReport()
             form.populate_obj(new_report)
+            # Set client_id based on selected client_name (assume value is client_id)
+            new_report.client_id = form.client_name.data
             if filename:
                 new_report.evidence = filename
             db.session.add(new_report)

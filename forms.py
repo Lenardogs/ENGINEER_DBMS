@@ -39,7 +39,7 @@ class MachineCalibrationForm(FlaskForm):
     submit = SubmitField('Save')
 
 class OvertimeLogbookForm(FlaskForm):
-    employee_name = SelectField('Employee Name', choices=[], validators=[DataRequired()])
+    employee_name = SelectField('Employee Name', choices=[], coerce=int, validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     hours = FloatField('Hours', validators=[DataRequired(), NumberRange(min=0.5, max=24)])
 

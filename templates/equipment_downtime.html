@@ -146,15 +146,13 @@
                                 </button>
                             </form>
                         </div>
-                        <div class="col-md-6">
-                            <form class="d-flex" method="GET" action="{{ url_for('equipment_downtime') }}">
-                                <div class="input-group me-2">
-                                    <input type="date" class="form-control" name="start_date" value="{{ start_date if start_date else '' }}">
-                                    <span class="input-group-text">to</span>
-                                    <input type="date" class="form-control" name="end_date" value="{{ end_date if end_date else '' }}">
-                                </div>
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-calendar me-1"></i>Filter by Date
+                        <div class="col-md-6 text-end">
+                            <form class="d-inline" action="{{ url_for('download_report') }}" method="POST">
+                                <input type="hidden" name="report_type" value="equipment_downtime">
+                                <input type="hidden" name="start_date" value="{{ start_date if start_date else '' }}">
+                                <input type="hidden" name="end_date" value="{{ end_date if end_date else '' }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-excel me-1"></i>Export to Excel
                                 </button>
                             </form>
                         </div>

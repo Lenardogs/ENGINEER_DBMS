@@ -299,18 +299,9 @@
                         {% if records %}
                         <div class="mt-3">
                             <div class="btn-group">
-                                <button class="btn btn-success" onclick="window.print()">
-                                    <i class="fas fa-print me-1"></i>Print Report
-                                </button>
-                                <form action="{{ url_for('download_report') }}" method="POST" class="d-inline">
-                                    <input type="hidden" name="report_type" value="maintenance_reports">
-                                    <input type="hidden" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
-                                    <input type="hidden" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-file-excel me-1"></i>Export to Excel
-                                    </button>
-                                </form>
-                            </div>
+    
+    
+</div>
                         </div>
                         {% endif %}
                         {% endif %}
@@ -321,6 +312,14 @@
                         <button class="btn btn-success" onclick="window.print()">
                             <i class="fas fa-print me-1"></i>Print Report
                         </button>
+                        <form action="{{ url_for('download_report') }}" method="POST" class="d-inline" target="_blank">
+                            <input type="hidden" name="report_type" value="{{ report_type }}">
+                            <input type="hidden" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
+                            <input type="hidden" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}">
+                            <button class="btn btn-success" type="submit">
+    <i class="fas fa-file-excel me-1"></i>Export to Excel
+</button>
+                        </form>
                     </div>
                     {% endif %}
                 </div>

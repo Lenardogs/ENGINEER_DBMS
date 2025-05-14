@@ -89,4 +89,6 @@ class ITInventoryForm(FlaskForm):
     item_name = StringField('Item Name', validators=[DataRequired()])
     total_quantity = IntegerField('Total Quantity', validators=[DataRequired(), NumberRange(min=0)])
     acquired_qty = IntegerField('Acquired Qty', validators=[DataRequired(), NumberRange(min=0)])
+    brand = StringField('Brand')
+    numbers_of_ng = IntegerField('Numbers of NG', validators=[NumberRange(min=0)])
     

@@ -84,4 +84,6 @@ class ITInventory(db.Model):
     item_name = db.Column(db.String(100), nullable=False)
     total_quantity = db.Column(db.Integer, nullable=False)
     acquired_qty = db.Column(db.Integer, nullable=False)
+    brand = db.Column(db.String(100))
+    numbers_of_ng = db.Column(db.Integer)
     

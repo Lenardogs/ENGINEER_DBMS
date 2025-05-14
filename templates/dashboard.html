@@ -510,6 +510,56 @@
                 </div>
             </div>
         </div>
+        <!-- Recent IT Inventory -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header" style="background-color: var(--accent-primary); color: white;">
+                    <h5><i class="fas fa-desktop me-2"></i>Recent IT Inventory</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_it_inventory %}
+                            {% for item in recent_it_inventory %}
+                                <li class="list-group-item">
+                                    <strong style="color: var(--accent-primary);">{{ item.item_name }}</strong>
+                                    <span class="ms-2">Brand: {{ item.brand or '-' }}</span>
+                                    <span class="ms-2">Qty: {{ item.total_quantity }}</span>
+                                    <span class="ms-2">NG: {{ item.numbers_of_ng or 0 }}</span>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center text-muted">No recent records</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Recent Maintenance & Abnormality Reports -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header" style="background-color: var(--accent-secondary); color: white;">
+                    <h5><i class="fas fa-wrench me-2"></i>Recent Maintenance & Abnormality Reports</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_maintenance_reports %}
+                            {% for report in recent_maintenance_reports %}
+                                <li class="list-group-item">
+                                    <strong style="color: var(--accent-secondary);">{{ report.model_id }}</strong>
+                                    <span class="ms-2">{{ report.model_name }}</span>
+                                    <span class="ms-2">Client: {{ report.client_name }}</span>
+                                    <span class="ms-2">Station: {{ report.station }}</span>
+                                    <span class="ms-2">Qty: {{ report.quantity }}</span>
+                                    <span class="ms-2">{{ report.created_at.strftime('%Y-%m-%d') }}</span>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-center text-muted">No recent records</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
         
         <!-- Recent Machine Calibrations -->
         <div class="col-md-6 mb-4">

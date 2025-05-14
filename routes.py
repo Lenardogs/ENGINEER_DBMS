@@ -35,6 +35,8 @@ def dashboard():
     recent_calibrations = MachineCalibration.query.order_by(MachineCalibration.created_at.desc()).limit(5).all()
     recent_overtime = OvertimeLogbook.query.order_by(OvertimeLogbook.created_at.desc()).limit(5).all()
     recent_downtimes = EquipmentDowntime.query.order_by(EquipmentDowntime.created_at.desc()).limit(5).all()
+    recent_it_inventory = ITInventory.query.order_by(ITInventory.id.desc()).limit(5).all()
+    recent_maintenance_reports = MaintenanceReport.query.order_by(MaintenanceReport.created_at.desc()).limit(5).all()
     
     # Get upcoming calibrations
     upcoming_calibrations = MachineCalibration.query.filter(
@@ -51,7 +53,9 @@ def dashboard():
                            recent_calibrations=recent_calibrations,
                            recent_overtime=recent_overtime,
                            recent_downtimes=recent_downtimes,
-                           upcoming_calibrations=upcoming_calibrations)
+                           upcoming_calibrations=upcoming_calibrations,
+                           recent_it_inventory=recent_it_inventory,
+                           recent_maintenance_reports=recent_maintenance_reports)
 
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -274,14 +278,27 @@ def delete_soldering_tip(tip_id):
 @login_required
 def machine_calibrations():
     search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date', '')
+    end_date = request.args.get('end_date', '')
+    calibrations_query = MachineCalibration.query
     if search_query:
-        calibrations = MachineCalibration.query.filter(
-            MachineCalibration.machine_name.ilike(f'%{search_query}%')
-        ).all()
-    else:
-        calibrations = MachineCalibration.query.all()
+        calibrations_query = calibrations_query.filter(MachineCalibration.machine_name.ilike(f'%{search_query}%'))
+    if start_date:
+        try:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            calibrations_query = calibrations_query.filter(MachineCalibration.date >= start_dt)
+        except ValueError:
+            pass
+    if end_date:
+        try:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+            calibrations_query = calibrations_query.filter(MachineCalibration.date <= end_dt)
+        except ValueError:
+            pass
+    calibrations = calibrations_query.all()
     form = MachineCalibrationForm()
-    return render_template('machine_calibration.html', calibrations=calibrations, form=form, search_query=search_query)
+    return render_template('machine_calibration.html', calibrations=calibrations, form=form, search_query=search_query, start_date=start_date, end_date=end_date)
+
 
 @app.route('/machine-calibrations/add', methods=['GET', 'POST'])
 @login_required
@@ -1080,6 +1097,8 @@ def it_inventory():
                 item_to_edit.item_name = form.item_name.data
                 item_to_edit.total_quantity = form.total_quantity.data
                 item_to_edit.acquired_qty = form.acquired_qty.data
+                item_to_edit.brand = form.brand.data
+                item_to_edit.numbers_of_ng = form.numbers_of_ng.data
                 db.session.commit()
                 flash('Item updated successfully!', 'success')
         else:
@@ -1087,7 +1106,9 @@ def it_inventory():
             new_item = ITInventory(
                 item_name=form.item_name.data,
                 total_quantity=form.total_quantity.data,
-                acquired_qty=form.acquired_qty.data
+                acquired_qty=form.acquired_qty.data,
+                brand=form.brand.data,
+                numbers_of_ng=form.numbers_of_ng.data
             )
             db.session.add(new_item)
             db.session.commit()

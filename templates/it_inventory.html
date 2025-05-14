@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="content-area">
+<div class="container-fluid content-area">
     <div class="dashboard-header mb-4">
         <div class="header-content">
             <h1 class="mb-0" style="color: white;">
@@ -32,9 +32,9 @@
         }
     </style>
 
-    <div class="row">
+    <div class="row g-3">
         <!-- Left: Insert Form Card -->
-        <div class="col-md-4 mb-4">
+        <div class="col-12 col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-header" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white;">
                     <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Insert IT Inventory Item</h5>
@@ -54,6 +54,14 @@
                             {{ form.acquired_qty.label(class="form-label", style="font-weight: 500;") }}
                             {{ form.acquired_qty(class="form-control", placeholder="Acquired") }}
                         </div>
+                        <div class="col-6 mb-2">
+                            {{ form.brand.label(class="form-label", style="font-weight: 500;") }}
+                            {{ form.brand(class="form-control", placeholder="Brand") }}
+                        </div>
+                        <div class="col-6 mb-2">
+                            {{ form.numbers_of_ng.label(class="form-label", style="font-weight: 500;") }}
+                            {{ form.numbers_of_ng(class="form-control", placeholder="Numbers of NG") }}
+                        </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary w-100"><i class="fas fa-plus me-1"></i>Insert</button>
                         </div>
@@ -62,7 +70,7 @@
             </div>
         </div>
         <!-- Right: Table Card -->
-        <div class="col-md-8">
+        <div class="col-12 col-md-8 mt-3 mt-md-0">
             <div class="card h-100">
                 <div class="card-header" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white;">
                     <h5 class="mb-0"><i class="fas fa-table me-2"></i>IT Inventory List</h5>
@@ -75,6 +83,8 @@
                                     <th>Item Name</th>
                                     <th>Total Quantity</th>
                                     <th>Acquired Qty</th>
+                                    <th>Brand</th>
+                                    <th>Numbers of NG</th>
                                     <th>Remaining</th>
                                     <th>Remarks</th>
                                     <th>Actions</th>
@@ -86,12 +96,15 @@
                                     <td>{{ item.item_name }}</td>
                                     <td>{{ item.total_quantity }}</td>
                                     <td>{{ item.acquired_qty }}</td>
-                                    <td>{{ item.total_quantity - item.acquired_qty }}</td>
+                                    <td>{{ item.brand or '' }}</td>
+                                    <td>{{ item.numbers_of_ng or 0 }}</td>
+                                    <td>{{ item.total_quantity - (item.acquired_qty + (item.numbers_of_ng or 0)) }}</td>
                                     <td>
-                                        {% if (item.total_quantity - item.acquired_qty) > (item.total_quantity / 2) %}
-                                            acceptable
-                                        {% elif (item.total_quantity - item.acquired_qty) < (item.total_quantity / 2) %}
-                                            for increase
+                                        {% set remaining = item.total_quantity - (item.acquired_qty + (item.numbers_of_ng or 0)) %}
+                                        {% if item.total_quantity > 0 and remaining < (item.total_quantity / 2) %}
+                                            <span class="text-danger fw-bold">For Restock</span>
+                                        {% else %}
+                                            <span class="text-success">Acceptable</span>
                                         {% endif %}
                                     </td>
                                     <td>
